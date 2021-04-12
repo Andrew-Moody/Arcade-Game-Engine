@@ -1,12 +1,12 @@
 #pragma once
 
-#include "../Engine/Core/igame.h"
+#include "../Engine/Core/basegame.h"
 
 #include <memory>
 
 class Player;
 
-class Game : public IGame
+class Game : public BaseGame
 {
 	std::shared_ptr<Player> player;  //Change to hold player id?
 
