@@ -1,21 +1,38 @@
 #include "entity.h"
 
+#include <memory>
+
 #include "physicsobject.h"
-#include "ai.h"
+#include "baseai.h"
 #include "sprite.h"
 
 
 Entity::Entity()
 {
 	id = (int)this;
+	alive = true;
 
-	sprite = std::make_shared<Sprite>() ;
-	physObject = std::make_shared<PhysicsObject>();
-	ai = std::make_shared<AI>();
+	sprite = nullptr;
+	physObject = nullptr;
+	ai = nullptr;
 }
 
 Entity::~Entity() {}
 
+void Entity::addSprite(std::shared_ptr<Sprite> sprite)
+{
+	this->sprite = sprite;
+}
+
+void Entity::addPhysics(std::shared_ptr<PhysicsObject> physicsObject)
+{
+	this->physObject = physicsObject;
+}
+
+void Entity::addAI(std::shared_ptr<BaseAI> ai)
+{
+	this->ai = ai;
+}
 
 void Entity::updatePhys(float deltaTime)
 {
@@ -43,6 +60,7 @@ void Entity::addCollision(int id)
 {
 	collisions.push_back(id);
 }
+
 
 std::shared_ptr<PhysicsObject> Entity::getPhysObjP() { return physObject; }
 

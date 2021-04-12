@@ -2,6 +2,13 @@
 
 #include <memory>
 
+struct HitBox
+{
+	int posX;
+	int posY;
+	int width;
+	int height;
+};
 
 class PhysicsObject
 {
@@ -12,7 +19,7 @@ class PhysicsObject
 	float velY;
 	float rotation;
 	float velRot;
-
+	HitBox hitBox;
 public:
 
 	PhysicsObject();
@@ -30,6 +37,8 @@ public:
 
 	void setRotVel(float degPmSec);
 
+	void setHitBox(int x, int y, int w, int h);
+
 	// Check if the calling entity is colliding with the entity passed in
 	bool collideWith(std::shared_ptr<PhysicsObject> entity);
 
@@ -39,4 +48,5 @@ public:
 
 	float getX();
 	float getY();
+	HitBox getHitBox();
 };

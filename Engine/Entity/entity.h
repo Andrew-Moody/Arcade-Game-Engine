@@ -6,24 +6,32 @@
 
 class Sprite;
 class PhysicsObject;
-class AI;
+class BaseAI;
 
 class Entity
 {
 
 protected:
 	
+	bool alive;
 
 	std::shared_ptr<Sprite> sprite;
 	std::shared_ptr<PhysicsObject> physObject;
-	std::shared_ptr<AI> ai;
+	std::shared_ptr<BaseAI> ai;
 
 	std::vector<int> collisions;
 
 public:
 	int id;
 	Entity();
-	~Entity();
+	virtual ~Entity();
+
+	// Add components 
+	void addSprite(std::shared_ptr<Sprite> sprite);
+
+	void addPhysics(std::shared_ptr<PhysicsObject> physicsObject);
+
+	void addAI(std::shared_ptr<BaseAI> ai);
 
 	// Updates physics and sprite
 	virtual void updatePhys(float deltaTime);
