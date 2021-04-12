@@ -57,40 +57,100 @@ void Sprite::setRect()
 	imageProperties.clip.x = imageProperties.clip.w * (currentFrame) + clipXOffset;
 }
 
-void Sprite::setVisible(bool show) { visible = show; }
+void Sprite::setVisible(bool show) 
+{
+	visible = show;
+}
 
 
 
-void Sprite::setFrameDelay(float delay) { frameDelay = delay; }
+void Sprite::setFrameDelay(float delay) 
+{ 
+	frameDelay = delay;
+}
 
-void Sprite::setStartEndFrames(int start, int end) { startFrame = start; endFrame = end; }
+void Sprite::setStartEndFrames(int start, int end) 
+{
+	startFrame = start;
+	endFrame = end; 
+}
 
-void Sprite::setCurrentFrame(int frame) { currentFrame = frame; }
+void Sprite::setCurrentFrame(int frame) 
+{ 
+	currentFrame = frame;
+}
 
-void Sprite::startAnimation(bool loop) { currentFrame = startFrame; paused = false; loopAnimation = loop; }
+void Sprite::startAnimation(bool loop) 
+{ 
+	currentFrame = startFrame;
+	paused = false;
+	loopAnimation = loop; 
+}
 
-void Sprite::stopAnimation() { currentFrame = startFrame; paused = true; loopAnimation = false; }
+void Sprite::stopAnimation() 
+{
+	currentFrame = startFrame;
+	paused = true;
+	loopAnimation = false; 
+}
 
-void Sprite::setPause(bool pause) { paused = pause; }
+void Sprite::setPause(bool pause)
+{ 
+	paused = pause;
+}
 
-void Sprite::setLoop(bool loop) { loopAnimation = loop; }
-
-
-void Sprite::setClip(int x, int y, int w, int h) { imageProperties.clip = { x, y, w, h }; clipXOffset = x; }
-
-
-void Sprite::setXY(int x, int y) { imageProperties.dest.x = x; imageProperties.dest.y = y; }
-
-void Sprite::setScale(float scale){ setWScale(scale); setHScale(scale); }
-
-void Sprite::setWScale(float scale) { imageProperties.dest.w = (int)(scale * imageProperties.clip.w); }
-
-void Sprite::setHScale(float scale) { imageProperties.dest.h = (int)(scale * imageProperties.clip.h); }
-
-void Sprite::setDegrees(double deg) { imageProperties.angle = deg; }
+void Sprite::setLoop(bool loop)
+{ 
+	loopAnimation = loop;
+}
 
 
+void Sprite::setClip(int x, int y, int w, int h) 
+{ 
+	imageProperties.clip = { x, y, w, h };
+	clipXOffset = x;
+}
 
-const ImageProperties& Sprite::getImageProperties() const { return imageProperties; }
 
-bool Sprite::isPaused() const { return paused; }
+void Sprite::setXY(int x, int y)
+{ 
+	imageProperties.dest.x = x; 
+	imageProperties.dest.y = y; 
+}
+
+void Sprite::setDest(int x, int y, int w, int h)
+{
+	imageProperties.dest = { x, y, w, h };
+}
+
+void Sprite::setScale(float scale)
+{ 
+	setWScale(scale); 
+	setHScale(scale); 
+}
+
+void Sprite::setWScale(float scale) 
+{ 
+	imageProperties.dest.w = (int)(scale * imageProperties.clip.w);
+}
+
+void Sprite::setHScale(float scale)
+{
+	imageProperties.dest.h = (int)(scale * imageProperties.clip.h); 
+}
+
+void Sprite::setDegrees(double deg)
+{ 
+	imageProperties.angle = deg;
+}
+
+
+const ImageProperties& Sprite::getImageProperties() const 
+{ 
+	return imageProperties; 
+}
+
+bool Sprite::isPaused() const 
+{ 
+	return paused; 
+}

@@ -79,6 +79,9 @@ public:
 	
 	void setXY(int x, int y);
 
+	// Usefull for tiles
+	void setDest(int x, int y, int w, int h);
+
 	void setScale(float scale);
 
 	void setWScale(float scale);
