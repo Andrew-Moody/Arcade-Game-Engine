@@ -6,6 +6,6 @@ enum class SpriteType : int
 	None,
 	Player,
 	Enemy,
-	TestTile1,
-	TestTile2
+	HoneyComb,
+	Honey
 };

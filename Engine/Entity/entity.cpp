@@ -6,6 +6,9 @@
 #include "baseai.h"
 #include "sprite.h"
 
+#include "../Message/publisher.h"
+#include "../Message/mailbox.h"
+#include "../Message/message.h"
 
 Entity::Entity()
 {
@@ -15,6 +18,7 @@ Entity::Entity()
 	sprite = nullptr;
 	physObject = nullptr;
 	ai = nullptr;
+	mailBox = nullptr;
 }
 
 Entity::~Entity() {}
@@ -32,6 +36,14 @@ void Entity::addPhysics(std::shared_ptr<PhysicsObject> physicsObject)
 void Entity::addAI(std::shared_ptr<BaseAI> ai)
 {
 	this->ai = ai;
+}
+
+void Entity::createMailBox(std::weak_ptr<Publisher> publisher)
+{
+	if (!mailBox)
+	{
+		mailBox = std::make_shared<MailBox>(publisher);
+	}
 }
 
 void Entity::updatePhys(float deltaTime)
@@ -65,3 +77,5 @@ void Entity::addCollision(int id)
 std::shared_ptr<PhysicsObject> Entity::getPhysObjP() { return physObject; }
 
 std::shared_ptr<Sprite> Entity::getSprite() { return sprite; }
+
+std::shared_ptr<MailBox> Entity::getMailBox() { return mailBox; }

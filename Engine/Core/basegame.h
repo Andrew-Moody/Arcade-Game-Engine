@@ -15,6 +15,8 @@ enum class EntityType : int;
 class ISpriteFactory;
 enum class SpriteType : int;
 
+class Publisher;
+
 
 
 class BaseGame
@@ -28,6 +30,7 @@ protected:
 	std::shared_ptr<TileManager> tileManager;
 	std::shared_ptr<IEntityFactory> entFactory;
 	std::shared_ptr<ISpriteFactory> spriteFactory;
+	std::shared_ptr<Publisher> publisher;
 	
 
 	SDL_Event sdl_event; //holds event information from the most recent poll
@@ -57,7 +60,7 @@ public:
 	// Prepares for rendering before calling IGame::render()
 	virtual void renderGame();
 
-	// Call in render to render the background tiles
+	// Call in render() to render the background tiles
 	virtual void renderTiles();
 
 	virtual void createEntity(EntityType type);

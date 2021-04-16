@@ -15,36 +15,30 @@
 
 void Game::setupGame()
 {
+	if (initialized)
+	{
+		//create game specific factories 
+		spriteFactory = std::make_shared<SpriteFactory>();
+		entFactory = std::make_shared<EntityFactory>(spriteFactory, publisher, input);
+
+		// Create a tile background
+		tileManager->createGrid(15, 15, 64, 64);
+		tileManager->loadGridFromFile("Game/tilemap.txt");
+		//tileManager->moveGrid(30, 30);
+
+		// Associate sprites with tile types
+		createTileSprite(SpriteType::Enemy);
+		createTileSprite(SpriteType::HoneyComb);
+		createTileSprite(SpriteType::Honey);
+
+		//create player
+		createEntity(EntityType::Enemy);
+		createEntity(EntityType::Enemy);
+		createEntity(EntityType::Enemy);
+		createEntity(EntityType::Player);
+		
+	}
 	
-	//create game specific factories 
-	spriteFactory = std::make_shared<SpriteFactory>();
-	entFactory = std::make_shared<EntityFactory>(spriteFactory, input);
-
-
-	tileManager->createGrid(5, 5, 64, 64);
-
-	tileManager->moveGrid(30, 30);
-
-	createTileSprite(SpriteType::TestTile1);
-	createTileSprite(SpriteType::TestTile2);
-
-
-	tileManager->placeTile(0, 0, SpriteType::TestTile1);
-	tileManager->placeTile(0, 1, SpriteType::TestTile1);
-	tileManager->placeTile(0, 2, SpriteType::TestTile1);
-	tileManager->placeTile(1, 0, SpriteType::TestTile1);
-	tileManager->placeTile(1, 1, SpriteType::TestTile1);
-	tileManager->placeTile(1, 2, SpriteType::TestTile2);
-	tileManager->placeTile(2, 0, SpriteType::TestTile2);
-	tileManager->placeTile(2, 1, SpriteType::TestTile1);
-	tileManager->placeTile(2, 2, SpriteType::TestTile1);
-	
-
-
-
-	//create player
-	createEntity(EntityType::Player);
-	createEntity(EntityType::Enemy);
 	
 }
 

@@ -91,6 +91,8 @@ public:
 	//looks like sdl uses degrees but will have to check
 	void setDegrees(double deg); 
 
+	void setFlip(SDL_RendererFlip flip) { imageProperties.flip = flip; }
+
 	
 
 	const ImageProperties& getImageProperties() const;

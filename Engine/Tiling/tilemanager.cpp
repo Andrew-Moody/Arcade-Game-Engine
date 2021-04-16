@@ -5,6 +5,9 @@
 
 #include <memory>
 #include <vector>
+#include <string>
+#include <fstream>
+#include <iostream>
 
 
 TileManager::TileManager()
@@ -100,4 +103,31 @@ int TileManager::getTile(int x, int y)
 	int index = gridWidth * y + x;
 
 	return grid[index];
+}
+
+
+bool TileManager::loadGridFromFile(std::string path)
+{
+	std::fstream gridFile(path.c_str());
+	
+	if (!gridFile)
+	{
+		std::cout << "Unable to load grid file, current grid will not be erased\n";
+		return false;
+	}
+
+	grid.clear();
+
+	int tile;
+
+	gridFile >> tile;
+
+	while (gridFile)
+	{
+		grid.push_back(tile);
+		gridFile >> tile;
+	}
+
+	gridFile.close();
+	return true;
 }

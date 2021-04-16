@@ -7,6 +7,8 @@
 class Sprite;
 class PhysicsObject;
 class BaseAI;
+class MailBox;
+class Publisher;
 
 class Entity
 {
@@ -18,6 +20,7 @@ protected:
 	std::shared_ptr<Sprite> sprite;
 	std::shared_ptr<PhysicsObject> physObject;
 	std::shared_ptr<BaseAI> ai;
+	std::shared_ptr<MailBox> mailBox;
 
 	std::vector<int> collisions;
 
@@ -33,6 +36,9 @@ public:
 
 	void addAI(std::shared_ptr<BaseAI> ai);
 
+	// Create a new mailbox if one doesnt exist
+	void createMailBox(std::weak_ptr<Publisher> publisher);
+
 	// Updates physics and sprite
 	virtual void updatePhys(float deltaTime);
 
@@ -46,5 +52,6 @@ public:
 
 	std::shared_ptr<PhysicsObject> getPhysObjP();
 	std::shared_ptr<Sprite> getSprite();
+	std::shared_ptr<MailBox> getMailBox();
 
 };

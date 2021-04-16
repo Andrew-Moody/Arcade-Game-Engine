@@ -18,8 +18,15 @@ There is an excellent tutorial on setting up these libraries for several differe
 
 ##### Version History:
 
-4/10/21 
-* The initial commit includes enough game code to provide a movable character with animation.
+4/15/21
+* Added a game event system based on a publish-subscribe pattern with the added ability for subscribers to post messages they want published to other subscribers.
+* Game objects remain decoupled by posting a message to the publisher that then distributes the message to all interested parties.
+* Game objects can recieve events buy owning a mailbox and subscribing to event types.
+* Publisher recieves message responses from subscribers at a seperate time from distribution effectively forming a double buffer that prevents feedback loops.
+* The player now posts an event to let the game know it has moved positions. Enemy AI now listens for these events in order to start chasing the player 
+  if the player comes into aggresion range and pursue them until they catch up to the player.
+* Player and Enemies now flip their sprite orientation based on direction of motion.
+* Tile grids can now be loaded from a file.
 
 4/12/21
 * Added a class to manage game tiles with animated sprites. A tile grid can be populated with tile types to render background scenery.
@@ -28,3 +35,6 @@ There is an excellent tutorial on setting up these libraries for several differe
 * Implemented AABB collision in collideWith().
 * Changed some class names from I to base prefix because they contained default implementation.
 * The sample "game" now includes an enemy sprite and shows some background tiles.
+
+4/10/21 
+* The initial commit includes enough game code to provide a movable character with animation.
