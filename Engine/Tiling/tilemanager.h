@@ -4,6 +4,7 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <string>
 
 class Sprite;
 class Graphics;
@@ -48,8 +49,12 @@ public:
 	// Render all tiles in the grid
 	void renderTileGrid(std::shared_ptr<Graphics> graphics);
 
-	// Adda tile to the grid
+	// Add a tile to the grid
 	void placeTile(int x, int y, SpriteType type);
 
 	int getTile(int x, int y);
+
+	// Load a grid from a file. returns true if successful and replaces current grid
+	bool loadGridFromFile(std::string path);
+
 };

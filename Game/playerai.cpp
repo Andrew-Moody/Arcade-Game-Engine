@@ -6,6 +6,10 @@
 #include "../Engine/Entity/physicsobject.h"
 #include "../Engine/Entity/sprite.h"
 #include "../Engine/Core/input.h"
+#include "../Engine/Message/mailbox.h"
+#include "../Engine/Message/message.h"
+#include "msgtype.h"
+#include "messages.h"
 
 PlayerAI::PlayerAI(std::weak_ptr<Entity> parent, std::shared_ptr<Input> pinput) : BaseAI(parent), input(pinput)
 {
@@ -17,7 +21,7 @@ void PlayerAI::update(float deltaTime)
 	std::shared_ptr<Entity> parent = parentEntity.lock();
 	std::shared_ptr<PhysicsObject> physics = parent->getPhysObjP();
 	std::shared_ptr<Sprite> sprite = parent->getSprite();
-
+	std::shared_ptr<MailBox> mailBox = parent->getMailBox();
 
 	if (input->wasAnyKeyPressed())
 	{
@@ -63,6 +67,16 @@ void PlayerAI::update(float deltaTime)
 
 	physics->setVelocity(velx, vely);
 
+	// Change the sprite orientation based on direction
+	if (velx > 0.0f)
+	{
+		sprite->setFlip(SDL_FLIP_HORIZONTAL);
+	}
+	else if (velx < 0.0f)
+	{
+		sprite->setFlip(SDL_FLIP_NONE);
+	}
+
 	if (animate)
 	{
 		if (sprite->isPaused())
@@ -75,4 +89,22 @@ void PlayerAI::update(float deltaTime)
 	{
 		sprite->stopAnimation();
 	}
+
+
+	if (animate)
+	{
+		std::shared_ptr<MSGPlayerMoved> posMessage = std::make_shared<MSGPlayerMoved>();
+
+		posMessage->x = physics->getX();
+		posMessage->y = physics->getY();
+
+		std::shared_ptr<Message> message = std::static_pointer_cast<Message>(posMessage);
+
+		mailBox->postMessage(message);
+	}
+
+	
+
+
+
 }

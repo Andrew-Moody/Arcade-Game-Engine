@@ -7,8 +7,11 @@
 #include "../Entity/ientityfactory.h"
 #include "../Entity/entity.h"
 #include "../Entity/ispritefactory.h"
+#include "../Message/publisher.h"
 
 #include <SDL.h>
+#include <random>
+#include <time.h>
 //#include <iostream>
 
 
@@ -17,12 +20,13 @@ enum class EntityType : int;
 BaseGame::BaseGame()
 {
 	//Initialize Variables
-	input = nullptr;
 	graphics = nullptr;
+	input = nullptr;
 	timer = nullptr;
+	tileManager = nullptr;
 	entFactory = nullptr;
 	spriteFactory = nullptr;
-	tileManager = nullptr;
+	publisher = nullptr;
 
 	paused = false;
 	initialized = false;
@@ -66,12 +70,18 @@ void BaseGame::initialize(int screenWidth, int screenHeight, bool captureMouse, 
 		timer = std::make_shared<Timer>();
 		timer->update();
 
+		srand( time(NULL) );
+
 		// furthur initialization of tilemanager will be required in derived game
 		tileManager = std::make_shared<TileManager>();
 
 		// Factories are game specific and should be setup in overridden setupGame()
 
-		//major systems should be initialised 
+
+		// Initialize publisher
+		publisher = std::make_shared<Publisher>();
+
+		//major game agnostic systems should be initialised 
 		initialized = true;
 	}
 }
@@ -86,6 +96,9 @@ bool BaseGame::run()
 	{
 		return true;
 	}
+
+	// Dispatch messages to subscribers
+	publisher->dispatchAll();
 
 	// Update game state
 	if (!paused)

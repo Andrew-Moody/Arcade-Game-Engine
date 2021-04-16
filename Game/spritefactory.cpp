@@ -1,6 +1,7 @@
 #include "spritefactory.h"
-#include "spritetype.h"
+
 #include "../Engine/Entity/sprite.h"
+#include "spritetype.h"
 
 #include <memory>
 
@@ -32,22 +33,22 @@ std::shared_ptr<Sprite> SpriteFactory::createSprite(SpriteType type)
 			sprite = std::make_shared<Sprite>();
 			sprite->setClip(0, 0, 16, 16);
 			sprite->setStartEndFrames(0, 2);
-			sprite->startAnimation(true);
+			sprite->startAnimation(false);
 			break;
 		}
 
-		case SpriteType::TestTile1:
+		case SpriteType::HoneyComb:
 		{
 			sprite = std::make_shared<Sprite>();
 			sprite->setClip(0, 32, 16, 16);
 			break;
 		}
 
-		case SpriteType::TestTile2:
+		case SpriteType::Honey:
 		{
 			sprite = std::make_shared<Sprite>();
 			sprite->setClip(0, 32, 16, 16);
-			sprite->setStartEndFrames(0, 2);
+			sprite->setStartEndFrames(0, 3);
 			sprite->setFrameDelay(800.0f);
 			sprite->startAnimation(true);
 			break;
