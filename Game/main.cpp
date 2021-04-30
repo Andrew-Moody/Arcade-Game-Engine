@@ -1,7 +1,7 @@
 #include <SDL.h>
 #include <iostream>
 
-#include "../Game/game.h"
+#include "testengine.h"
 
 
 //Screen dimensions
@@ -9,22 +9,24 @@ const int SCREEN_WIDTH = 900;
 const int SCREEN_HEIGHT = 700;
 
 
-
 int main( int argc, char* args[])
 {
-	//Initialize SDL
-	Game game;
-	// Perform initialization of core systems
-	game.initialize(SCREEN_WIDTH, SCREEN_HEIGHT, false, "Assets/bug.png", "Test");
+
+
+	//Create a engineCore
+	std::shared_ptr<TestEngine> gameCore = std::make_shared<TestEngine>();
 	
-	// Game specific initialization
-	game.setupGame();
+	// Perform initialization of core systems
+	gameCore->setupCore(SCREEN_WIDTH, SCREEN_HEIGHT, false, "Assets/bug.png", "Test");
+	
+	// Load game
+	gameCore->loadGame();
 
 	// Game loop
 	bool done = false;
 	while (!done)
 	{
-		done = game.run();
+		done = gameCore->run();
 	}
 	return 0;
 }

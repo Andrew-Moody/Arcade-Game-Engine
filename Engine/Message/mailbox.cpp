@@ -1,21 +1,24 @@
 #include "mailbox.h"
 
 #include "publisher.h"
+#include "mailaddress.h"
 #include "message.h"
 
 #include <memory>
 
-MailBox::MailBox(std::weak_ptr<Publisher> publisher)
-	: publisher(publisher)
+MailBox::MailBox()
 {
+	
+}
 
+void MailBox::setPublisher(std::weak_ptr<Publisher> publisher)
+{
+	this->publisher = publisher;
 }
 
 void MailBox::subscribe(MsgType type)
 {
-	std::shared_ptr<Publisher> pub = publisher.lock();
-
-	if (pub)
+	if (auto pub = publisher.lock())
 	{
 		pub->subscribe(type, this);
 	}
@@ -23,11 +26,17 @@ void MailBox::subscribe(MsgType type)
 
 void MailBox::unsubscribe(MsgType type)
 {
-	std::shared_ptr<Publisher> pub = publisher.lock();
-
-	if (pub)
+	if (auto pub = publisher.lock())
 	{
 		pub->unsubscribe(type, this);
+	}
+}
+
+void MailBox::postMessage(std::shared_ptr<Message> message)
+{
+	if (auto pub = publisher.lock())
+	{
+		pub->postMessage(message);
 	}
 }
 
@@ -36,15 +45,7 @@ void MailBox::addMessage(std::shared_ptr<Message> message)
 	eventQueue.push(message);
 }
 
-void MailBox::postMessage(std::shared_ptr<Message> message)
-{
-	std::shared_ptr<Publisher> pub = publisher.lock();
 
-	if (pub)
-	{
-		pub->postMessage(message);
-	}
-}
 
 std::shared_ptr<Message> MailBox::getMessage()
 { 

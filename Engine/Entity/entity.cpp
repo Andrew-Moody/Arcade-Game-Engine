@@ -42,7 +42,8 @@ void Entity::createMailBox(std::weak_ptr<Publisher> publisher)
 {
 	if (!mailBox)
 	{
-		mailBox = std::make_shared<MailBox>(publisher);
+		mailBox = std::make_shared<MailBox>();
+		mailBox->setPublisher(publisher);
 	}
 }
 

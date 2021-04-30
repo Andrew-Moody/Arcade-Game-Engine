@@ -6,10 +6,10 @@
 
 #include <iostream>
 
-void Publisher::subscribe(MsgType type, MailBoxPtr mailBox)
+void Publisher::subscribe(MsgType type, MailBoxRawPtr mailBox)
 {
 	// Find the map entry if it exists
-	std::map<MsgType, std::vector<MailBoxPtr>>::iterator itMap = subscribers.find(type);
+	std::map<MsgType, std::vector<MailBoxRawPtr>>::iterator itMap = subscribers.find(type);
 	if (itMap == subscribers.end())
 	{
 		// First subscriber to that type
@@ -18,7 +18,7 @@ void Publisher::subscribe(MsgType type, MailBoxPtr mailBox)
 	else
 	{
 		// Check the mailbox isnt already subscibed to prevent message duplication and simplify removal
-		std::vector<MailBoxPtr>::iterator itVec = std::find(itMap->second.begin(), itMap->second.end(), mailBox);
+		std::vector<MailBoxRawPtr>::iterator itVec = std::find(itMap->second.begin(), itMap->second.end(), mailBox);
 
 		if (itVec != itMap->second.end())
 		{
@@ -34,17 +34,17 @@ void Publisher::subscribe(MsgType type, MailBoxPtr mailBox)
 	
 }
 
-void Publisher::unsubscribe(MsgType type, MailBoxPtr mailBox)
+void Publisher::unsubscribe(MsgType type, MailBoxRawPtr mailBox)
 {
 
-	std::map<MsgType, std::vector<MailBoxPtr>>::iterator itMap = subscribers.find(type);
+	std::map<MsgType, std::vector<MailBoxRawPtr>>::iterator itMap = subscribers.find(type);
 	if (itMap == subscribers.end())
 	{
 		// There are no subscribers to that type
 	}
 	else
 	{
-		std::vector<MailBoxPtr>::iterator itVec = std::find(itMap->second.begin(), itMap->second.end(), mailBox);
+		std::vector<MailBoxRawPtr>::iterator itVec = std::find(itMap->second.begin(), itMap->second.end(), mailBox);
 
 		if (itVec == itMap->second.end())
 		{
@@ -73,12 +73,12 @@ void Publisher::dispatchNext()
 	MsgType type = message->getType();
 
 	// Locate the vector associated with the message type
-	std::map<MsgType, std::vector<MailBoxPtr>>::iterator itMap = subscribers.find(type);
+	std::map<MsgType, std::vector<MailBoxRawPtr>>::iterator itMap = subscribers.find(type);
 	if (itMap != subscribers.end())
 	{
 		// Send the message to every subscriber in the vector
-		std::vector<MailBoxPtr>::iterator itVec = itMap->second.begin();
-		std::vector<MailBoxPtr>::iterator itEnd = itMap->second.end();
+		std::vector<MailBoxRawPtr>::iterator itVec = itMap->second.begin();
+		std::vector<MailBoxRawPtr>::iterator itEnd = itMap->second.end();
 
 		for (itVec; itVec != itEnd; ++itVec)
 		{

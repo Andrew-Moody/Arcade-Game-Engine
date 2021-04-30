@@ -6,7 +6,6 @@
 class Input
 {
 private:
-
 	bool keysDown[255];
 	bool keysPressed[255];  //key was pressed in the current frame
 	bool anyKeyPressed;   //True if any key was pressed this frame
