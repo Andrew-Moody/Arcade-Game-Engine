@@ -12,7 +12,7 @@ class MailBox;
 
 enum class MsgType : int;
 //typedef std::weak_ptr<MailBox> MailBoxPtr;
-typedef MailBox* MailBoxPtr; // Non owning
+typedef MailBox* MailBoxRawPtr; // Non owning
 
 
 class Publisher
@@ -21,15 +21,15 @@ class Publisher
 	std::queue<std::shared_ptr<Message>> messages;
 
 	// map of subscribers keyed by message type they are interested in
-	std::map<MsgType, std::vector<MailBoxPtr>> subscribers;
+	std::map<MsgType, std::vector<MailBoxRawPtr>> subscribers;
 
 public:
 
 	// Associate a mailbox with the desired event type
-	void subscribe(MsgType type, MailBoxPtr mailBox);
+	void subscribe(MsgType type, MailBoxRawPtr mailBox);
 
 	// Stop recieving messages for that type
-	void unsubscribe(MsgType type, MailBoxPtr mailBox);
+	void unsubscribe(MsgType type, MailBoxRawPtr mailBox);
 
 	// Used by subscribers to submit messages to the publisher
 	void postMessage(std::shared_ptr<Message> message);

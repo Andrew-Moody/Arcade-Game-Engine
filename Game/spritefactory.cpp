@@ -24,7 +24,6 @@ std::shared_ptr<Sprite> SpriteFactory::createSprite(SpriteType type)
 			sprite = std::make_shared<Sprite>();
 			sprite->setClip(0, 16, 16, 16);
 			sprite->setStartEndFrames(0, 2);
-			sprite->startAnimation(true);
 			break;
 		}
 
@@ -33,7 +32,6 @@ std::shared_ptr<Sprite> SpriteFactory::createSprite(SpriteType type)
 			sprite = std::make_shared<Sprite>();
 			sprite->setClip(0, 0, 16, 16);
 			sprite->setStartEndFrames(0, 2);
-			sprite->startAnimation(false);
 			break;
 		}
 

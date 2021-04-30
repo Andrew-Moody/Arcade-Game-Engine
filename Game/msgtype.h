@@ -4,5 +4,7 @@
 
 enum class MsgType : int
 {
-	PlayerMoved
+	Control,
+	PlayerMoved,
+	LaunchProjectile
 };

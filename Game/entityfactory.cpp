@@ -2,7 +2,6 @@
 #include "entityfactory.h"
 #include "entitytype.h"
 #include "spritetype.h"
-#include "player.h"
 #include "playerai.h"
 #include "enemyai.h"
 
@@ -10,8 +9,6 @@
 #include "../Engine/Entity/ispritefactory.h"
 #include "../Engine/Entity/entity.h"
 #include "../Engine/Entity/physicsobject.h"
-//#include "../Engine/Entity/baseai.h"
-#include "../Engine/Core/input.h"
 #include "../Engine/Message/publisher.h"
 #include "../Engine/Message/mailbox.h"
 #include "msgtype.h"
@@ -20,8 +17,8 @@
 
 #include <memory>
 
-EntityFactory::EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<Publisher> publisher, std::shared_ptr<Input> input)
-	: IEntityFactory(spriteFac, publisher), input(input)
+EntityFactory::EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<Publisher> publisher)
+	: IEntityFactory(spriteFac, publisher)
 {
 
 }
@@ -34,7 +31,7 @@ std::shared_ptr<Entity> EntityFactory::createEntity(EntityType type)
 	{
 		case EntityType::Player :
 		{
-			entity = std::make_shared<Player>();
+			entity = std::make_shared<Entity>();
 
 			entity->addSprite(spriteFactory->createSprite(SpriteType::Player));
 
@@ -44,14 +41,11 @@ std::shared_ptr<Entity> EntityFactory::createEntity(EntityType type)
 
 			entity->addPhysics(phys);
 
-			entity->addAI(std::make_shared<PlayerAI>(entity, input));
+			entity->addAI(std::make_shared<PlayerAI>(entity));
 
 			entity->createMailBox(publisher);
-
-
-			
-			
-
+			std::shared_ptr<MailBox> mailBox = entity->getMailBox();
+			mailBox->subscribe(MsgType::Control);
 
 			break;
 		}
