@@ -6,8 +6,8 @@
 class Input
 {
 private:
-	bool keysDown[255];
-	bool keysPressed[255];  //key was pressed in the current frame
+	bool keysDown[256];
+	bool keysPressed[256];  //key was pressed in the current frame 
 	bool anyKeyPressed;   //True if any key was pressed this frame
 
 	int mouseX, mouseY;   //Mouse screen coordinates

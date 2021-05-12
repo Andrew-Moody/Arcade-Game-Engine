@@ -6,7 +6,7 @@
 #include "baseai.h"
 #include "sprite.h"
 
-#include "../Message/publisher.h"
+#include "../Message/messagebus.h"
 #include "../Message/mailbox.h"
 #include "../Message/message.h"
 
@@ -38,12 +38,12 @@ void Entity::addAI(std::shared_ptr<BaseAI> ai)
 	this->ai = ai;
 }
 
-void Entity::createMailBox(std::weak_ptr<Publisher> publisher)
+void Entity::createMailBox(std::weak_ptr<MessageBus> messageBus)
 {
 	if (!mailBox)
 	{
 		mailBox = std::make_shared<MailBox>();
-		mailBox->setPublisher(publisher);
+		mailBox->setPublisher(messageBus);
 	}
 }
 

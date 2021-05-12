@@ -8,7 +8,7 @@ class Sprite;
 class PhysicsObject;
 class BaseAI;
 class MailBox;
-class Publisher;
+class MessageBus;
 
 class Entity
 {
@@ -37,7 +37,7 @@ public:
 	void addAI(std::shared_ptr<BaseAI> ai);
 
 	// Create a new mailbox if one doesnt exist
-	void createMailBox(std::weak_ptr<Publisher> publisher);
+	void createMailBox(std::weak_ptr<MessageBus> messageBus);
 
 	// Updates physics and sprite
 	virtual void updatePhys(float deltaTime);

@@ -46,7 +46,7 @@ bool EngineCore::handleSDLEvents()
 	return false;
 }
 
-void EngineCore::setupCore(int screenWidth, int screenHeight, bool captureMouse, std::string spriteSheetPath, std::string windowName)
+void EngineCore::setupCore(int screenWidth, int screenHeight, bool captureMouse, std::string spriteSheetPath, std::string fontPath, std::string windowName)
 {
 	if (!initialized)
 	{
@@ -56,7 +56,7 @@ void EngineCore::setupCore(int screenWidth, int screenHeight, bool captureMouse,
 
 		// Initialize graphics
 		graphics = std::make_shared<Graphics>();
-		graphics->initialize(screenWidth, screenHeight, spriteSheetPath, windowName);
+		graphics->initialize(screenWidth, screenHeight, spriteSheetPath, fontPath, windowName);
 
 		// Initialize global timer
 		globalTimer = std::make_shared<Timer>();
@@ -78,7 +78,6 @@ bool EngineCore::run()
 	// Read input. Returns true if game should exit        keep this function here but will no longer check for exit events (need to handle those in context)
 	if (handleSDLEvents())
 	{
-		// Alternatively could have a function in context to save the context called here before exiting
 		return true;
 	}
 

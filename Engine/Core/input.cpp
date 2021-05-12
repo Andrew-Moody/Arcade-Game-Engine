@@ -41,20 +41,30 @@ bool Input::inputIn(SDL_Event& event)
 	{
 		SDL_Keycode keyCode = event.key.keysym.sym;
 
-		// update keysDown
-		keysDown[keyCode] = true;
+		if (keyCode < 256)
+		{
+			// update keysDown
+			keysDown[keyCode] = true;
 
-		// update keysPressed
-		keysPressed[keyCode] = true;
+			// update keysPressed
+			keysPressed[keyCode] = true;
 
-		anyKeyPressed = true;
+			anyKeyPressed = true;
+		}
+		
 
 	}
 
 	if (event.type == SDL_KEYUP)
 	{
-		// update keysDown
-		keysDown[event.key.keysym.sym] = false;
+		SDL_Keycode keyCode = event.key.keysym.sym;
+
+		if (keyCode < 256)
+		{
+			// update keysDown
+			keysDown[keyCode] = false;
+		}
+		
 	}
 
 

@@ -35,7 +35,7 @@ public:
 	bool handleSDLEvents();
 
 	// Initialize core systems
-	void setupCore(int screenWidth, int screenHeight, bool captureMouse, std::string spriteSheetPath, std::string windowName);
+	void setupCore(int screenWidth, int screenHeight, bool captureMouse, std::string spriteSheetPath, std::string fontPath, std::string windowName);
 
 	// Called once per frame by the entry point
 	// Returns true if an SDL_QUIT event occurs

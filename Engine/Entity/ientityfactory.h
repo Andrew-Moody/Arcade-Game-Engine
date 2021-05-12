@@ -5,7 +5,7 @@
 class ISpriteFactory;
 class Entity;
 enum class EntityType : int;
-class Publisher;
+class MessageBus;
 
 class IEntityFactory
 {
@@ -14,12 +14,12 @@ protected:
 	// Must create a sprite factory for the game 
 	std::shared_ptr<ISpriteFactory> spriteFactory;
 
-	// New entities have to option to subscribe to messages through the publisher
-	std::weak_ptr<Publisher> publisher;
+	// New entities have the option to subscribe to messages through the messageBus
+	std::weak_ptr<MessageBus> messageBus;
 public:
 
-	IEntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<Publisher> publisher) 
-		: spriteFactory(spriteFac), publisher(publisher) 
+	IEntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<MessageBus> messageBus)
+		: spriteFactory(spriteFac), messageBus(messageBus)
 	{
 	
 	}
