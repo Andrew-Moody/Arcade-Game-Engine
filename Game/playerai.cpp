@@ -7,9 +7,7 @@
 #include "../Engine/Entity/sprite.h"
 #include "../Engine/Core/input.h"
 #include "../Engine/Message/mailbox.h"
-#include "../Engine/Message/message.h"
-#include "msgtype.h"
-#include "messages.h"
+#include "../Engine/Message/messages.h"
 
 #include <iostream>
 
@@ -26,10 +24,8 @@ void PlayerAI::update(float deltaTime)
 	std::shared_ptr<Sprite> sprite = parent->getSprite();
 	std::shared_ptr<MailBox> mailBox = parent->getMailBox();
 
-	// check events rather than input
 
 	float velx = 0.0f, vely = 0.0f;
-	bool animate = true;
 	
 	while (!mailBox->isEmpty())
 	{
@@ -120,10 +116,13 @@ void PlayerAI::update(float deltaTime)
 	{
 		sprite->setFlip(SDL_FLIP_NONE);
 	}
-	else
+	
+	bool animate = true;
+	if (velx == 0 && vely == 0)
 	{
 		animate = false;
 	}
+
 
 	if (animate)
 	{

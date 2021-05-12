@@ -7,8 +7,8 @@
 #include "../Engine/Entity/sprite.h"
 #include "../Engine/Message/mailbox.h"
 #include "../Engine/Message/message.h"
-#include "msgtype.h"
-#include "messages.h"
+#include "../Engine/Message/messages.h"
+#include "../Engine/Message/msgtype.h"
 
 #include "math.h"
 
@@ -61,6 +61,8 @@ void EnemyAI::update(float deltaTime)
 
 	float length = sqrt(n);
 
+	bool playerCaught = false;
+
 	if (angry)
 	{
 		if (length < 30.0f)
@@ -69,6 +71,8 @@ void EnemyAI::update(float deltaTime)
 			physics->setVelocity(0.0f, 0.0f);
 
 			sprite->stopAnimation();
+
+			playerCaught = true;
 		}
 		else
 		{
@@ -110,4 +114,13 @@ void EnemyAI::update(float deltaTime)
 	}
 
 	
+
+	if (playerCaught)
+	{
+		std::shared_ptr<MSGChangeState> message = std::make_shared<MSGChangeState>(5);
+		std::shared_ptr<Message> msg = std::static_pointer_cast<Message>(message);
+
+		mailBox->postMessage(msg);
+	}
+
 }

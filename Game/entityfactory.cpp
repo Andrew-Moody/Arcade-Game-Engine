@@ -9,16 +9,16 @@
 #include "../Engine/Entity/ispritefactory.h"
 #include "../Engine/Entity/entity.h"
 #include "../Engine/Entity/physicsobject.h"
-#include "../Engine/Message/publisher.h"
+#include "../Engine/Message/messagebus.h"
 #include "../Engine/Message/mailbox.h"
-#include "msgtype.h"
+#include "../Engine/Message/messages.h"
 #include <random>
 
 
 #include <memory>
 
-EntityFactory::EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<Publisher> publisher)
-	: IEntityFactory(spriteFac, publisher)
+EntityFactory::EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<MessageBus> messageBus)
+	: IEntityFactory(spriteFac, messageBus)
 {
 
 }
@@ -43,7 +43,7 @@ std::shared_ptr<Entity> EntityFactory::createEntity(EntityType type)
 
 			entity->addAI(std::make_shared<PlayerAI>(entity));
 
-			entity->createMailBox(publisher);
+			entity->createMailBox(messageBus);
 			std::shared_ptr<MailBox> mailBox = entity->getMailBox();
 			mailBox->subscribe(MsgType::Control);
 
@@ -68,7 +68,7 @@ std::shared_ptr<Entity> EntityFactory::createEntity(EntityType type)
 
 			entity->addAI(std::make_shared<EnemyAI>(entity));
 
-			entity->createMailBox(publisher);
+			entity->createMailBox(messageBus);
 			std::shared_ptr<MailBox> mailBox = entity->getMailBox();
 			mailBox->subscribe(MsgType::PlayerMoved);
 
@@ -82,6 +82,8 @@ std::shared_ptr<Entity> EntityFactory::createEntity(EntityType type)
 		}
 	}
 	
+	entity->updatePhys(0.00f);
+
 	return entity;
 
 }

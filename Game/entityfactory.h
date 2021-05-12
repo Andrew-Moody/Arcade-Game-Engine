@@ -7,14 +7,14 @@
 enum class EntityType : int;
 
 class ISpriteFactory;
-class Publisher;
+class MessageBus;
 
 class EntityFactory : public IEntityFactory
 {	
 
 public:
 
-	EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<Publisher> publisher);
+	EntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<MessageBus> messageBus);
 
 	std::shared_ptr<Entity> createEntity(EntityType type) override;
 

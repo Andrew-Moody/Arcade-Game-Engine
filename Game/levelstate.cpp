@@ -5,9 +5,10 @@
 #include "../Engine/Entity/entity.h"
 #include "../Engine/Entity/sprite.h"
 #include "../Engine/Tiling/tilemanager.h"
-#include "../Engine/Message/publisher.h"
+#include "../Engine/Message/messagebus.h"
+#include "../Engine/Message/mailbox.h"
+#include "../Engine/Message/messages.h"
 
-#include "messages.h"
 
 #include "entityfactory.h"
 #include "entitytype.h"
@@ -18,13 +19,14 @@
 #include <iostream>
 
 
-LevelState::LevelState(std::shared_ptr<MailAddress> address)
-	: BaseState(address)
+LevelState::LevelState(std::shared_ptr<IGameState> parentState)
+	: BaseState(parentState)
 {
 	tileManager = nullptr;
 	entFactory = nullptr;
 	spriteFactory = nullptr;
-	publisher = nullptr;
+	entityMessageBus = nullptr;
+	mailBox = nullptr;
 }
 
 
@@ -47,8 +49,18 @@ void LevelState::initialize()
 	std::shared_ptr<Entity> enemy = createEntity(EntityType::Enemy);
 	entities[enemy->id] = enemy;
 
+	std::shared_ptr<Entity> enemy2 = createEntity(EntityType::Enemy);
+	entities[enemy2->id] = enemy2;
+
 	std::shared_ptr<Entity> player = createEntity(EntityType::Player);
 	entities[player->id] = player;
+
+
+	mailBox = std::make_shared<MailBox>();
+
+	mailBox->setPublisher(entityMessageBus);
+	mailBox->subscribe(MsgType::ChangeState);
+
 }
 
 
@@ -58,12 +70,28 @@ void LevelState::update(float deltaTime, InputPtr input)
 	handleInput(input);
 
 	// Dispatch messages to subscribers
-	publisher->dispatchAll();
+	entityMessageBus->dispatchAll();
 
 	// Update game state
 	updatePhysics(deltaTime);
 	handleCollisions();
 	updateAI(deltaTime);
+
+	if (mailBox)
+	{
+		while (!mailBox->isEmpty())
+		{
+			MessagePtr message = mailBox->getMessage();
+
+			if (message->getType() == MsgType::ChangeState)
+			{
+				if (auto parent = parentState.lock())
+				{
+					parent->handleMessage(message);
+				}
+			}
+		}
+	}
 }
 
 
@@ -75,11 +103,28 @@ void LevelState::render(GraphicsPtr graphics)
 	{
 		graphics->draw(it->second->getSprite());
 	}
+
+	SDL_Color color = { 0,0,0 };
+	graphics->drawText("Eddie", color, 0,0,2);
+
 }
 
 
 void LevelState::handleInput(InputPtr input)
 {
+
+	if (input->wasKeyPressed(SDLK_ESCAPE))
+	{
+		std::shared_ptr<MSGPushState> controlMessage = std::make_shared<MSGPushState>(4);
+
+		std::shared_ptr<Message> msg = std::static_pointer_cast<Message>(controlMessage);
+
+		if (auto parent = parentState.lock())
+		{
+			parent->handleMessage(msg);
+		}
+		
+	}
 
 	CtrlCode direction = CtrlCode::Null;
 
@@ -123,7 +168,7 @@ void LevelState::handleInput(InputPtr input)
 
 		std::shared_ptr<Message> msg = std::static_pointer_cast<Message>(controlMessage);
 
-		publisher->postMessage(msg);
+		entityMessageBus->postMessage(msg);
 	}
 
 
@@ -133,7 +178,7 @@ void LevelState::handleInput(InputPtr input)
 
 		std::shared_ptr<Message> msg = std::static_pointer_cast<Message>(controlMessage);
 
-		publisher->postMessage(msg);
+		entityMessageBus->postMessage(msg);
 	}
 
 	
@@ -158,16 +203,20 @@ void LevelState::handleCollisions()
 {
 	for (auto entity = entities.begin(); entity != entities.end(); ++entity)
 	{
-		for (auto ent = ++entity; ent != entities.end(); ++ent)
+		if (entity != entities.end())
 		{
-			if (entity->second->collideWith(ent->second))
+			auto ent = entity;
+			++ent;
+			for (ent; ent != entities.end(); ++ent)
 			{
-				entity->second->addCollision(ent->first);
-				ent->second->addCollision(entity->first);
+				if (entity->second->collideWith(ent->second))
+				{
+					entity->second->addCollision(ent->first);
+					ent->second->addCollision(entity->first);
+				}
 			}
-		}
+		}	
 	}
-
 }
 
 
@@ -195,9 +244,9 @@ std::shared_ptr<Sprite> LevelState::createSprite(SpriteType type)
 }
 
 
-void LevelState::attachPublisher(std::shared_ptr<Publisher> pub)
+void LevelState::attachMessageBus(std::shared_ptr<MessageBus> MessageBus)
 {
-	publisher = pub;
+	entityMessageBus = MessageBus;
 }
 
 void LevelState::attachEntityFactory(std::shared_ptr<IEntityFactory> efactory)

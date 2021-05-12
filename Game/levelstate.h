@@ -11,7 +11,8 @@ typedef std::shared_ptr<Input> InputPtr;
 class Graphics;
 typedef std::shared_ptr<Graphics> GraphicsPtr;
 
-class Publisher;
+class MailBox;
+class MessageBus;
 class Entity;
 class IEntityFactory;
 enum class EntityType : int;
@@ -24,8 +25,9 @@ class LevelState : public BaseState
 
 	std::shared_ptr<IEntityFactory> entFactory;
 	std::shared_ptr<ISpriteFactory> spriteFactory;
-	std::shared_ptr<Publisher> publisher;
+	std::shared_ptr<MessageBus> entityMessageBus;
 
+	std::shared_ptr<MailBox> mailBox;
 
 	// Tilemap
 	std::shared_ptr<TileManager> tileManager;
@@ -35,7 +37,7 @@ class LevelState : public BaseState
 
 public:
 
-	LevelState(std::shared_ptr<MailAddress> address);
+	LevelState(std::shared_ptr<IGameState> parentState);
 
 	void initialize() override;
 
@@ -43,8 +45,10 @@ public:
 
 	void render(GraphicsPtr graphics) override;
 
+	void handleMessage(std::shared_ptr<Message> message) override {}
 
-	void attachPublisher(std::shared_ptr<Publisher> publisher);
+
+	void attachMessageBus(std::shared_ptr<MessageBus> publisher);
 
 	void attachEntityFactory(std::shared_ptr<IEntityFactory> efactory);
 

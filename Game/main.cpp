@@ -17,7 +17,7 @@ int main( int argc, char* args[])
 	std::shared_ptr<TestEngine> gameCore = std::make_shared<TestEngine>();
 	
 	// Perform initialization of core systems
-	gameCore->setupCore(SCREEN_WIDTH, SCREEN_HEIGHT, false, "Assets/bug.png", "Test");
+	gameCore->setupCore(SCREEN_WIDTH, SCREEN_HEIGHT, false, "Assets/bug.png", "Assets/arcadeclassic.regular.ttf", "Test");
 	
 	// Load game
 	gameCore->loadGame();
