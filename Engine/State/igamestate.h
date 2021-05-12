@@ -16,7 +16,9 @@ public:
 
 	virtual ~IGameState() {};
 
-	virtual void postMessage(MessagePtr message) = 0;
+	//virtual void postMessage(MessagePtr message) = 0;
+
+	virtual void handleMessage(MessagePtr message) = 0;
 
 	virtual void initialize() = 0;
 

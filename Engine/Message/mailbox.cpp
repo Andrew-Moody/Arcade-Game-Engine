@@ -1,6 +1,6 @@
 #include "mailbox.h"
 
-#include "publisher.h"
+#include "messagebus.h"
 #include "mailaddress.h"
 #include "message.h"
 
@@ -11,32 +11,32 @@ MailBox::MailBox()
 	
 }
 
-void MailBox::setPublisher(std::weak_ptr<Publisher> publisher)
+void MailBox::setPublisher(std::weak_ptr<MessageBus> messageBus)
 {
-	this->publisher = publisher;
+	this->messageBus = messageBus;
 }
 
 void MailBox::subscribe(MsgType type)
 {
-	if (auto pub = publisher.lock())
+	if (auto msgBus = messageBus.lock())
 	{
-		pub->subscribe(type, this);
+		msgBus->subscribe(type, this);
 	}
 }
 
 void MailBox::unsubscribe(MsgType type)
 {
-	if (auto pub = publisher.lock())
+	if (auto msgBus = messageBus.lock())
 	{
-		pub->unsubscribe(type, this);
+		msgBus->unsubscribe(type, this);
 	}
 }
 
 void MailBox::postMessage(std::shared_ptr<Message> message)
 {
-	if (auto pub = publisher.lock())
+	if (auto msgBus = messageBus.lock())
 	{
-		pub->postMessage(message);
+		msgBus->postMessage(message);
 	}
 }
 

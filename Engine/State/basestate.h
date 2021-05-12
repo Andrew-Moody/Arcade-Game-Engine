@@ -4,22 +4,21 @@
 
 #include <memory>
 
-class MailAddress;
 class Message;
 
 class BaseState : public IGameState
 {
 
 protected:
-	std::shared_ptr<MailAddress> mailAddress;
+	std::weak_ptr<IGameState> parentState;
 
 public:
 
-	BaseState(std::shared_ptr<MailAddress> address);
+	BaseState(std::weak_ptr<IGameState> state);
 	virtual ~BaseState();
 
 	// Post a message to the parent mailbox
-	void postMessage(std::shared_ptr<Message> message) override;
+	void handleMessage(std::shared_ptr<Message> message) override = 0;
 	
 };
 

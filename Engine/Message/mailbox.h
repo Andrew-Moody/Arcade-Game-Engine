@@ -5,20 +5,20 @@
 
 //#include "message.h"
 
-class Publisher;
+class MessageBus;
 class Message;
 enum class MsgType : int;
 
 class MailBox
 {
-	std::weak_ptr<Publisher> publisher;
+	std::weak_ptr<MessageBus> messageBus;
 	std::queue<std::shared_ptr<Message>> eventQueue;
 public:
 
 	MailBox();
 	virtual ~MailBox() {}
 
-	void setPublisher(std::weak_ptr<Publisher> publisher);
+	void setPublisher(std::weak_ptr<MessageBus> messageBus);
 
 	// Start recieving messages of the specified type
 	void subscribe(MsgType type);

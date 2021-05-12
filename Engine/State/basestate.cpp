@@ -3,8 +3,8 @@
 #include "statemanager.h"
 #include "../Message/mailaddress.h"
 
-BaseState::BaseState(std::shared_ptr<MailAddress> address)
-	: mailAddress(address)
+BaseState::BaseState(std::weak_ptr<IGameState> state)
+	: parentState(state)
 {
 	
 }
@@ -13,10 +13,4 @@ BaseState::BaseState(std::shared_ptr<MailAddress> address)
 BaseState::~BaseState()
 {
 
-}
-
-
-void BaseState::postMessage(std::shared_ptr<Message> message)
-{
-	mailAddress->postMessage(message);
 }
