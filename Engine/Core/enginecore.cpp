@@ -124,6 +124,7 @@ void EngineCore::loadGame(std::string filePath)
 	if (!file)
 	{
 		// Error
+		return;
 	}
 
 	std::string assetName;
@@ -164,16 +165,6 @@ void EngineCore::loadGame(std::string filePath)
 			gameManager = stateFactory->createState(operand, nullptr);
 		}
 	}
-
-
-	//std::unique_ptr<StateFactory> stateFactory = std::make_shared<StateFactory>();
-
-	StateFactory* stateFactory = new StateFactory();
-
-	
-
-	
-
 }
 
 
