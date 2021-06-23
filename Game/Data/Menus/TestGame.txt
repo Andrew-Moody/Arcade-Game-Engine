@@ -1,0 +1,2 @@
+ChildStates GameMenu PauseGame GameOver Level1 Level2
+InitialState GameMenu

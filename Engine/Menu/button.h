@@ -6,23 +6,20 @@
 #include <memory>
 
 class BoxSprite;
-typedef std::shared_ptr<BoxSprite> BoxSpritePtr;
 class Message;
-typedef std::shared_ptr<Message> MsgPtr;
 class MailAddress;
-typedef std::shared_ptr<MailAddress> MailAddressPtr;
 
 
 class Button : public MenuBox
 {
-	MsgPtr message;
-	MailAddressPtr mailAddress;
+	std::shared_ptr<Message> message;
+	MailAddress* mailAddress;
 
 	bool pressed;
 
 public:
 
-	Button(std::string text, std::shared_ptr<BoxSprite> sprite, int scale, MsgPtr msg = nullptr, MailAddressPtr address = nullptr);
+	Button(std::string text, std::unique_ptr<BoxSprite>& sprite, int scale, std::shared_ptr<Message> msg = nullptr, MailAddress* address = nullptr);
 
 	~Button();
 

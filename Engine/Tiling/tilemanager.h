@@ -7,6 +7,7 @@
 #include <string>
 
 class Sprite;
+class ISpriteFactory;
 class Graphics;
 
 enum class SpriteType : int;
@@ -28,7 +29,8 @@ class TileManager
 	int posY;
 
 	std::vector<int> grid;
-	std::map<int, std::shared_ptr<Sprite>> tileSet;
+	std::map<int, std::unique_ptr<Sprite>> tileSet;
+	std::map<int, bool> tileSolid;
 
 public:
 
@@ -44,17 +46,33 @@ public:
 	void createGrid(int gridwidth, int gridheight, int tilewidth, int tileheight);
 
 	// Add a sprite to the tileset
-	void addTileSprite(SpriteType type, std::shared_ptr<Sprite> sprite);
+	void addTileSprite(int tileID, std::unique_ptr<Sprite>& sprite, bool solid);
 
 	// Render all tiles in the grid
-	void renderTileGrid(std::shared_ptr<Graphics> graphics);
+	void renderTileGrid(Graphics* graphics);
 
 	// Add a tile to the grid
 	void placeTile(int x, int y, SpriteType type);
 
 	int getTile(int x, int y);
 
+	int getTileWidth() { return tileWidth; }
+	int getTileHeight() { return tileHeight; }
+
 	// Load a grid from a file. returns true if successful and replaces current grid
-	bool loadGridFromFile(std::string path);
+	bool loadGridFromFile(std::string filepath, ISpriteFactory* spriteFactory);
+
+	bool collidesWith(int x, int y, int w, int h);
+
+	bool collidesWith2X2(int x, int y, int w, int h);
+
+	bool isSolid(int x, int y);
+
+	bool isSolid2X2(int x, int y);
+
+
+	int getXcollision(int x, int w);
+
+	int getYcollision(int y, int h);
 
 };

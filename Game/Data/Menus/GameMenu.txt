@@ -1,0 +1,8 @@
+SetSpriteSheet Pacman
+SetFont Classic
+#MakeBox srcX srcY borderWidth x y w h Contents Scale
+MakeBox 0 16 12 128 128 400 500 GameMenu 1
+#MakeButton position srcX srcY borderWidth x y w h Contents Scale MsgType MsgArgs...
+MakeButton Top 0 16 24 174 200 300 100 PlayGame 1 ChangeState Level1
+MakeButton Middle 0 16 24 174 350 300 100 Options 1
+MakeButton Bottom 0 16 24 174 500 300 100 Exit 1 ChangeState MainMenu

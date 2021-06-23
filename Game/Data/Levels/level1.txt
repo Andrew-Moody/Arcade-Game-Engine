@@ -1,0 +1,18 @@
+LoadSpriteFactory Game/Data/sprites.txt
+LoadTileMap Game/Data/Levels/tilemap1.txt
+LoadEntityFactory Game/Data/entities.txt
+Spawn Player 0 0
+Spawn RedGhost 300 264
+Spawn GreenGhost 264 312
+Spawn BlueGhost 300 312
+Spawn YellowGhost 336 312
+SubscribeMail 0
+SubscribeMail 3
+SubscribeMail 4
+AddEntControl 119 0 1
+AddEntControl 97 0 2
+AddEntControl 115 0 3
+AddEntControl 100 0 4
+AddEntControl 32 9 0
+AddStateControl 27 4 0
+SetNextLevel Level2

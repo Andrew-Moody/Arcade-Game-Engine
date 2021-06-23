@@ -1,0 +1,8 @@
+EntityTemplates
+#Name Sprite Behavior
+Player Player PlayerAI
+GreenGhost GreenGhost GhostAI
+BlueGhost BlueGhost GhostAI
+YellowGhost YellowGhost GhostAI
+RedGhost RedGhost GhostAI
+Projectile Fireball Null

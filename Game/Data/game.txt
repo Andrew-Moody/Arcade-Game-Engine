@@ -1,0 +1,7 @@
+#AddSpriteSheet Name Path
+AddSpriteSheet MainMenu Assets/mainmenu.png
+AddSpriteSheet Pacman Assets/pacman.png
+#AddFont Name Path Size
+AddFont Classic Assets/arcadeclassic.regular.ttf 36
+LoadStates Game/Data/states.txt
+CreateState GameManager

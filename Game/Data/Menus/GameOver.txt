@@ -1,0 +1,6 @@
+SetSpriteSheet Default
+SetFont Default
+#MakeBox srcX srcY borderWidth x y w h Contents Scale
+MakeBox 0 16 12 128 128 400 300 GameOver 1
+#MakeButton position srcX srcY borderWidth x y w h Contents Scale MsgType MsgArgs...
+MakeButton Top 0 16 24 174 200 300 100 Menu 1 ChangeState GameMenu

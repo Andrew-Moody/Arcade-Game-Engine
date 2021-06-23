@@ -2,28 +2,26 @@
 
 #include "../State/statemanager.h"
 #include <memory>
+#include <string>
 
 class Input;
-typedef std::shared_ptr<Input> InputPtr;
 class Graphics;
-typedef std::shared_ptr<Graphics> GraphicsPtr;
 class MenuBox;
-typedef std::shared_ptr<MenuBox> MenuBoxPtr;
 
 
 class MenuState : public StateManager
 {
-	MenuBoxPtr box;
+	std::unique_ptr<MenuBox> box;
 
 public:
 
-	MenuState(std::weak_ptr<IGameState> parentState);
+	MenuState(IGameState* parentState, IStateFactory* stateFactory, std::string name);
 
-	void update(float deltaTime, InputPtr input) override;
+	void update(float deltaTime, Input* input) override;
 
-	void render(GraphicsPtr graphics) override;
+	void render(Graphics* graphics) override;
 	
+	void initialize(std::string path) override;
 
-
-	void setBox(MenuBoxPtr menuBox) { box = menuBox; }
+	void setBox(std::unique_ptr<MenuBox>& menuBox);
 };

@@ -6,45 +6,50 @@
 
 #include <memory>
 
+#include <iostream>
+
 MailBox::MailBox()
 {
-	
+	messageBus = nullptr;
 }
 
-void MailBox::setPublisher(std::weak_ptr<MessageBus> messageBus)
+MailBox::~MailBox()
+{
+	std::cout << "mailbox smashed\n";
+
+	if (messageBus)
+	{
+		messageBus->unsubscribeAll(this);
+	}
+	
+
+	std::cout << "Deleting: mailBox At: " << this << std::endl;
+}
+
+void MailBox::setPublisher(MessageBus* messageBus)
 {
 	this->messageBus = messageBus;
 }
 
 void MailBox::subscribe(MsgType type)
 {
-	if (auto msgBus = messageBus.lock())
-	{
-		msgBus->subscribe(type, this);
-	}
+	messageBus->subscribe(type, this);
 }
 
 void MailBox::unsubscribe(MsgType type)
 {
-	if (auto msgBus = messageBus.lock())
-	{
-		msgBus->unsubscribe(type, this);
-	}
+	messageBus->unsubscribe(type, this);
 }
 
 void MailBox::postMessage(std::shared_ptr<Message> message)
 {
-	if (auto msgBus = messageBus.lock())
-	{
-		msgBus->postMessage(message);
-	}
+	messageBus->postMessage(message);
 }
 
 void MailBox::addMessage(std::shared_ptr<Message> message)
 {
 	eventQueue.push(message);
 }
-
 
 
 std::shared_ptr<Message> MailBox::getMessage()
@@ -58,4 +63,10 @@ std::shared_ptr<Message> MailBox::getMessage()
 
 	return nullptr;
 	
+}
+
+
+std::unique_ptr<MailAddress> MailBox::getAddress()
+{
+	return std::make_unique<MailAddress>(this);
 }

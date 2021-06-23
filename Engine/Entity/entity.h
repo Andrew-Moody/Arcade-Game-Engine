@@ -3,12 +3,18 @@
 #include <memory>
 #include <map>
 #include <vector>
+#include <string>
 
 class Sprite;
 class PhysicsObject;
-class BaseAI;
+class IComponent;
 class MailBox;
 class MessageBus;
+
+class LevelState;
+class TileManager;
+
+class TestPhysics;
 
 class Entity
 {
@@ -17,41 +23,59 @@ protected:
 	
 	bool alive;
 
-	std::shared_ptr<Sprite> sprite;
-	std::shared_ptr<PhysicsObject> physObject;
-	std::shared_ptr<BaseAI> ai;
-	std::shared_ptr<MailBox> mailBox;
+	std::unique_ptr<Sprite> sprite;
+	std::unique_ptr<PhysicsObject> physObject;
+	std::unique_ptr<IComponent> ai;
+	std::unique_ptr<MailBox> mailBox;
 
-	std::vector<int> collisions;
+	LevelState* state;
+
+	TestPhysics* testPhysics;
+
 
 public:
 	int id;
+	std::string name;
+
 	Entity();
 	virtual ~Entity();
 
-	// Add components 
-	void addSprite(std::shared_ptr<Sprite> sprite);
+	// Give a reference to the state that owns the entity
+	void setState(LevelState* state)
+	{
+		this->state = state;
+	}
 
-	void addPhysics(std::shared_ptr<PhysicsObject> physicsObject);
+	// Add components
+	void addSprite(std::unique_ptr<Sprite>& sprite);
 
-	void addAI(std::shared_ptr<BaseAI> ai);
+	void addPhysics(std::unique_ptr<PhysicsObject>& physicsObject);
+
+	void addAI(std::unique_ptr<IComponent>& ai);
 
 	// Create a new mailbox if one doesnt exist
-	void createMailBox(std::weak_ptr<MessageBus> messageBus);
+	void createMailBox(MessageBus* messageBus);
 
 	// Updates physics and sprite
 	virtual void updatePhys(float deltaTime);
 
+	virtual void updatePhysOnMap(TileManager* tileMap, float deltaTime);
+
+	virtual void updatePhysX(float deltaTime);
+
+	virtual void updatePhysY(float deltaTime);
+
 	virtual void updateAI(float deltaTime);
 
-	// Returns true if this entity is colliding with passed entity
-	virtual bool collideWith(std::shared_ptr<Entity> entity);
+	virtual void updateSprite(float deltaTime);
 
-	// Add an entity id to the list of entities this entity is colliding with 
-	void addCollision(int id);
+	
+	PhysicsObject* getPhysObjP();
+	Sprite* getSprite();
+	MailBox* getMailBox();
 
-	std::shared_ptr<PhysicsObject> getPhysObjP();
-	std::shared_ptr<Sprite> getSprite();
-	std::shared_ptr<MailBox> getMailBox();
+	LevelState* getState() { return state; }
+
+	TestPhysics* getTestPhysics() { return testPhysics; }
 
 };

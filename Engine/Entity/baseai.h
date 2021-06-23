@@ -1,18 +1,18 @@
 #pragma once
 
-#include <memory>
+#include "icomponent.h"
 
 class Entity;
 
-class BaseAI
+class BaseAI : public IComponent
 { 
 protected:
-	std::weak_ptr<Entity> parentEntity;
+	Entity* parentEntity;
 
 public:
-	BaseAI(std::weak_ptr<Entity> parent) : parentEntity(parent) {}
+	BaseAI(Entity* parent) : parentEntity(parent) {}
 	virtual ~BaseAI() {}
 
 
-	virtual void update(float deltaTime) = 0;
+	//virtual void update(float deltaTime) = 0;
 };

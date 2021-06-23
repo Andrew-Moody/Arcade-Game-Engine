@@ -4,8 +4,8 @@
 
 Sprite::Sprite()
 {
-	imageProperties.clip = { 0,0,16,16 };
-	imageProperties.dest = { 64,64,64,64 };
+	imageProperties.clip = { 0, 0, 16, 16 };
+	imageProperties.dest = { 0, 0, 200, 200 };
 	imageProperties.center = { 0,0 };
 	imageProperties.flip = SDL_FLIP_NONE;
 	imageProperties.angle = 0.0f;
@@ -22,6 +22,7 @@ Sprite::Sprite()
 	loopAnimation = false;
 }
 
+Sprite::~Sprite() {}
 
 
 void Sprite::update(float frameTime)

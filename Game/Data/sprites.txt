@@ -1,0 +1,11 @@
+SpriteTemplates
+#name clip.x clip.y clip.w clip.h scale startFrame endFrame frameDelay startBool
+Default 0 0 16 16 1 0 0 0 false
+Floor 0 32 16 16 1 0 0 0 false
+Wall 0 32 16 16 1 1 2 200 true
+Player 0 48 16 16 3 0 3 100 true
+GreenGhost 0 80 16 16 3 0 3 300 true
+BlueGhost 0 96 16 16 3 0 3 300 true
+YellowGhost 0 112 16 16 3 0 3 300 true
+RedGhost 0 128 16 16 3 0 3 300 true
+Fireball 0 64 16 16 2 0 3 300 true

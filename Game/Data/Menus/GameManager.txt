@@ -1,0 +1,2 @@
+ChildStates MainMenu TestGame
+InitialState MainMenu

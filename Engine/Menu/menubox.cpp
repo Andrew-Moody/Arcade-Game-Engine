@@ -1,13 +1,40 @@
 #include "menubox.h"
 
+#include "boxsprite.h"
+
 #include "../Core/input.h"
 #include "../Core/graphics.h"
 
 #include <iostream>
 
 
-void MenuBox::update(InputPtr input)
-{	
+
+MenuBox::MenuBox(std::string text, std::unique_ptr<BoxSprite>& sprite, int scale)
+	: selected(false), parentBox(nullptr), boxSprite(std::move(sprite))
+{
+
+	properties = { 28, scale, text, boxSprite.get() };
+
+	selectedChild = boxList.end();
+
+	initialized = false;
+}
+
+MenuBox::~MenuBox() {}
+
+
+void MenuBox::update(Input* input)
+{		
+	if (!initialized)
+	{
+		if (!boxList.empty())
+		{
+			selectedChild = boxList.begin();
+			(*selectedChild)->select();
+		}
+		
+		initialized = true;
+	}
 
 	if (input->wasKeyPressed(SDLK_s))
 	{
@@ -21,60 +48,79 @@ void MenuBox::update(InputPtr input)
 
 	if (input->wasKeyPressed(SDLK_RETURN))
 	{
-		if (selectedChild != boxMap.end())
+		if (selectedChild != boxList.end())
 		{
-			selectedChild->second->pressButton();
+			(*selectedChild)->pressButton();
 		}
 	}	
 }
 
 
-void MenuBox::render(GraphicsPtr graphics)
+void MenuBox::render(Graphics* graphics)
 {
 	graphics->drawBox(this);
 
 
-	for (auto iter = boxMap.begin(); iter != boxMap.end(); ++iter)
+	for (auto iter = boxList.begin(); iter != boxList.end(); ++iter)
 	{
-		iter->second->render(graphics);
+		(*iter)->render(graphics);
 	}
 }
 
 
-void MenuBox::addChild(BoxPosition position, std::shared_ptr<MenuBox> box) 
+const BoxProperties& MenuBox::getProperties() { return properties; }
+
+void MenuBox::addChild(std::unique_ptr<MenuBox>& box)
 { 
-	box->setParent(this);
-	boxMap[position] = box;
+	boxList.push_back(std::move(box));
 }
 
-void MenuBox::selectChild(BoxPosition position)
-{ 
-	if (selectedChild != boxMap.end())
-	{
-		selectedChild->second->deselect();
-	}
-
-	selectedChild = boxMap.find(position);
-
-	selectedChild->second->select();
-}
+//void MenuBox::selectChild(std::string position)
+//{ 
+//	if (selectedChild != boxMap.end())
+//	{
+//		selectedChild->second->deselect();
+//	}
+//
+//	selectedChild = boxMap.find(position);
+//
+//	selectedChild->second->select();
+//}
 
 
 void MenuBox::moveSelectionDown() 
 { 
-	selectedChild->second->deselect();
+	
+	(*selectedChild)->deselect();
 
 	++selectedChild;
 
-	selectedChild->second->select();
+	if (selectedChild == boxList.end())
+	{
+		std::cout << "Failed to change selection\n";
+		--selectedChild;
+	}
+
+	(*selectedChild)->select();
 }
 
 
 void MenuBox::moveSelectionUp() 
 { 
-	selectedChild->second->deselect();
+	
 
-	--selectedChild;
+	if (selectedChild != boxList.begin())
+	{
+		(*selectedChild)->deselect();
 
-	selectedChild->second->select();
+		--selectedChild;
+
+		(*selectedChild)->select();
+	}
+	else
+	{
+		std::cout << "Failed to change selection\n";\
+	}
+
+	
 }

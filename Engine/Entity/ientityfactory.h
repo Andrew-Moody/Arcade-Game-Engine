@@ -1,25 +1,18 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
-class ISpriteFactory;
 class Entity;
-enum class EntityType : int;
-class MessageBus;
+struct EntityTemplate;
+class FileHandle;
 
 class IEntityFactory
 {
-protected:
 
-	// Must create a sprite factory for the game 
-	std::shared_ptr<ISpriteFactory> spriteFactory;
-
-	// New entities have the option to subscribe to messages through the messageBus
-	std::weak_ptr<MessageBus> messageBus;
 public:
 
-	IEntityFactory(std::shared_ptr<ISpriteFactory> spriteFac, std::weak_ptr<MessageBus> messageBus)
-		: spriteFactory(spriteFac), messageBus(messageBus)
+	IEntityFactory()
 	{
 	
 	}
@@ -30,5 +23,11 @@ public:
 	}
 
 	// Must be implemented by game specific entity factory
-	virtual std::shared_ptr<Entity> createEntity(EntityType type) = 0;
+	virtual std::unique_ptr<Entity> createEntity(std::string entityName) = 0;
+
+	virtual void loadEntityTemplates(std::string filePath) = 0;
+
+private:
+
+	virtual std::unique_ptr<EntityTemplate> createEntityTemplate(FileHandle& file) = 0;
 };

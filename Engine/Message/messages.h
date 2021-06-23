@@ -3,28 +3,24 @@
 #include "message.h"
 #include "msgtype.h"
 
+#include <string>
 
 
-
-class MSGChangeState : public Message
+enum class StateChangeType
 {
-public:
-	int state;
-	MSGChangeState(int state) : Message(MsgType::ChangeState), state(state) {}
+	ChangeState,
+	PushState,
+	PopState
 };
 
-class MSGPushState : public Message
+class MSGStateChange : public Message
 {
 public:
-	int state;
-	MSGPushState(int state) : Message(MsgType::PushState), state(state) {}
+	std::string state;
+	StateChangeType changeType;
+	MSGStateChange(std::string state, StateChangeType changeType) : Message(MsgType::StateChange), state(state), changeType(changeType) {}
 };
 
-class MSGPopState : public Message
-{
-public:
-	MSGPopState() : Message(MsgType::PopState) {}
-};
 
 enum class CtrlCode
 {
@@ -54,8 +50,10 @@ class MSGPlayerMoved : public Message
 public:
 	float x;
 	float y;
+	float vx;
+	float vy;
 
-	MSGPlayerMoved() : Message(MsgType::PlayerMoved), x(0.0f), y(0.0f) {}
+	MSGPlayerMoved() : Message(MsgType::PlayerMoved), x(0.0f), y(0.0f), vx(0.0f), vy(0.0f) {}
 
 };
 
@@ -74,4 +72,25 @@ public:
 	{
 
 	}
+};
+
+
+class MSGCollision : public Message
+{
+public:
+	int ID_A;
+	int ID_B;
+
+	MSGCollision(int EntityID_A, int EntityID_B) : Message(MsgType::Collision), ID_A(EntityID_A), ID_B(EntityID_B) {}
+
+};
+
+
+class MSGEntityDestroyed : public Message
+{
+public:
+	int ID;
+
+	MSGEntityDestroyed(int EntityID) : Message(MsgType::EntityDestroyed), ID(EntityID) {}
+
 };

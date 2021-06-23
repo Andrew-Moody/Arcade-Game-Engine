@@ -1,4 +1,4 @@
-#include "entity.h"
+//#include "entity.h"
 
 #include <memory>
 
@@ -6,9 +6,14 @@
 #include "baseai.h"
 #include "sprite.h"
 
+#include "entity.h"
+
 #include "../Message/messagebus.h"
 #include "../Message/mailbox.h"
 #include "../Message/message.h"
+
+#include "../Core/physics.h"
+#include "testphysics.h"
 
 Entity::Entity()
 {
@@ -19,30 +24,43 @@ Entity::Entity()
 	physObject = nullptr;
 	ai = nullptr;
 	mailBox = nullptr;
+	state = nullptr;
+
+	testPhysics = new TestPhysics();
+	testPhysics->posX = 0;
+	testPhysics->posY = 0;
+	testPhysics->width = 42;
+	testPhysics->height = 42;
+	testPhysics->velX = 1;
+	testPhysics->velY = 1;
+
 }
 
-Entity::~Entity() {}
-
-void Entity::addSprite(std::shared_ptr<Sprite> sprite)
+Entity::~Entity() 
 {
-	this->sprite = sprite;
+	delete testPhysics;
 }
 
-void Entity::addPhysics(std::shared_ptr<PhysicsObject> physicsObject)
+void Entity::addSprite(std::unique_ptr<Sprite>& sprite)
 {
-	this->physObject = physicsObject;
+	this->sprite = std::move(sprite);
 }
 
-void Entity::addAI(std::shared_ptr<BaseAI> ai)
+void Entity::addPhysics(std::unique_ptr<PhysicsObject>& physicsObject)
 {
-	this->ai = ai;
+	this->physObject = std::move(physicsObject);
 }
 
-void Entity::createMailBox(std::weak_ptr<MessageBus> messageBus)
+void Entity::addAI(std::unique_ptr<IComponent>& ai)
+{
+	this->ai = std::move(ai);
+}
+
+void Entity::createMailBox(MessageBus* messageBus)
 {
 	if (!mailBox)
 	{
-		mailBox = std::make_shared<MailBox>();
+		mailBox = std::make_unique<MailBox>();
 		mailBox->setPublisher(messageBus);
 	}
 }
@@ -50,8 +68,45 @@ void Entity::createMailBox(std::weak_ptr<MessageBus> messageBus)
 void Entity::updatePhys(float deltaTime)
 {
 	physObject->update(deltaTime);
+}
 
+void Entity::updatePhysOnMap(TileManager* tileMap, float deltaTime)
+{
+	testPhysics->posX = physObject->getX();
+	testPhysics->posY = physObject->getY();
 
+	testPhysics->velX = physObject->getVelX();
+	testPhysics->velY = physObject->getVelY();
+
+	Physics::moveOnTileMap(testPhysics, tileMap, deltaTime);
+
+	physObject->setPosition(testPhysics->posX, testPhysics->posY);
+
+	// Sync sprite
+	updateSprite(deltaTime);
+}
+
+void Entity::updatePhysX(float deltaTime)
+{
+	physObject->updateX(deltaTime);
+}
+
+void Entity::updatePhysY(float deltaTime)
+{
+	physObject->updateY(deltaTime);
+}
+
+void Entity::updateAI(float deltaTime)
+{
+	if (ai)
+	{
+		ai->update(deltaTime);
+	}
+	
+}
+
+void Entity::updateSprite(float deltaTime)
+{
 	int x = (int)physObject->getX();
 	int y = (int)physObject->getY();
 
@@ -59,24 +114,9 @@ void Entity::updatePhys(float deltaTime)
 	sprite->update(deltaTime);
 }
 
-void Entity::updateAI(float deltaTime)
-{
-	ai->update(deltaTime);
-}
 
-bool Entity::collideWith(std::shared_ptr<Entity> entity)
-{
-	return physObject->collideWith(entity->getPhysObjP());
-}
+PhysicsObject* Entity::getPhysObjP() { return physObject.get(); }
 
-void Entity::addCollision(int id)
-{
-	collisions.push_back(id);
-}
+Sprite* Entity::getSprite() { return sprite.get(); }
 
-
-std::shared_ptr<PhysicsObject> Entity::getPhysObjP() { return physObject; }
-
-std::shared_ptr<Sprite> Entity::getSprite() { return sprite; }
-
-std::shared_ptr<MailBox> Entity::getMailBox() { return mailBox; }
+MailBox* Entity::getMailBox() { return mailBox.get(); }

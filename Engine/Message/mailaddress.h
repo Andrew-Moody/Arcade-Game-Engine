@@ -7,16 +7,16 @@ class Message;
 
 class MailAddress
 {
-	// Povides a means to post a message directly to a mailbox without owning the mailbox
+	// Povides a means to post a message directly to a mailbox while restricting access to other functions
 
 public:
 
-	MailAddress(std::weak_ptr<MailBox> address);
+	MailAddress(MailBox* address);
 	
 	void postMessage(std::shared_ptr<Message> message);
 
 private:
 	
-	std::weak_ptr<MailBox> mailAddress;
+	MailBox* mailAddress;
 
 };

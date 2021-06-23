@@ -1,9 +1,11 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 class Sprite;
-enum class SpriteType;
+struct SpriteTemplate;
+class FileHandle;
 
 class ISpriteFactory
 {
@@ -12,5 +14,11 @@ public:
 	ISpriteFactory() {}
 	virtual ~ISpriteFactory() {}
 
-	virtual std::shared_ptr<Sprite> createSprite(SpriteType type) = 0;
+	virtual std::unique_ptr<Sprite> createSprite(std::string spriteName) = 0;
+
+	virtual void loadTemplates(std::string filePath) = 0;
+
+private:
+
+	virtual std::unique_ptr<SpriteTemplate> createSpriteTemplate(FileHandle& file) = 0;
 };

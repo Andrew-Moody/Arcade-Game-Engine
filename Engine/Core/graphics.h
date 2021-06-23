@@ -45,12 +45,12 @@ public:
 	~Graphics();
 
 	// Initializes SDL and loads the specified spritesheet (should be a png)
-	void initialize(int screenWidth, int screenHeight, std::string spriteSheetPath, std::string fontPath, std::string windowName);
+	void initialize(int screenWidth, int screenHeight, std::string windowName);
 	
 
 	// Uses SDL_RenderCopyEx() to draw a texture using the info in sprite
 	// Calls to draw should be proceeded by beginScene() and preceed endScene()
-	void draw(std::shared_ptr<Sprite> sprite);
+	void draw(Sprite* sprite);
 
 	void drawText(std::string text, SDL_Color textColor, int x, int y, int scale);
 

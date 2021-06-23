@@ -9,16 +9,18 @@ class MessageBus;
 class Message;
 enum class MsgType : int;
 
+class MailAddress;
+
 class MailBox
 {
-	std::weak_ptr<MessageBus> messageBus;
+	MessageBus* messageBus;
 	std::queue<std::shared_ptr<Message>> eventQueue;
 public:
 
 	MailBox();
-	virtual ~MailBox() {}
+	virtual ~MailBox();
 
-	void setPublisher(std::weak_ptr<MessageBus> messageBus);
+	void setPublisher(MessageBus* messageBus);
 
 	// Start recieving messages of the specified type
 	void subscribe(MsgType type);
@@ -37,4 +39,5 @@ public:
 
 	bool isEmpty() { return eventQueue.empty(); }
 
+	std::unique_ptr<MailAddress> getAddress();
 };

@@ -4,20 +4,24 @@
 #include "graphics.h"
 #include "timer.h"
 #include "../State/statemanager.h"
+#include "../State/statefactory.h"
 
 #include <SDL.h>
 #include <random>
 #include <time.h>
 
+#include "filehandle.h"
 
 enum class EntityType : int;
 
 EngineCore::EngineCore()
 {
 	//Initialize Variables
-	graphics = nullptr;
-	input = nullptr;
-	globalTimer = nullptr;
+	graphics = std::make_unique<Graphics>();
+	input = std::make_unique<Input>();
+	globalTimer = std::make_unique<Timer>();
+
+	stateFactory = std::make_unique<StateFactory>();
 
 	gameManager = nullptr;
 
@@ -46,20 +50,59 @@ bool EngineCore::handleSDLEvents()
 	return false;
 }
 
-void EngineCore::setupCore(int screenWidth, int screenHeight, bool captureMouse, std::string spriteSheetPath, std::string fontPath, std::string windowName)
+void EngineCore::setupCore(std::string filePath)
 {
 	if (!initialized)
 	{
+
+		// Simple RAII class with a few reading utility functions
+		FileHandle file(filePath.c_str());
+
+		if (!file)
+		{
+			// Error
+		}
+
+
+		int screenWidth = 600;
+		int screenHeight = 400;
+
+		std::string windowName;
+
+		while (!file.eof())
+		{
+			std::string command = file.getNextString();
+
+			if (command == "ScreenWidth")
+			{
+				screenWidth = file.getNextInt();
+			}
+
+			if (command == "ScreenHeight")
+			{
+				screenHeight = file.getNextInt();
+			}
+
+			if (command == "WindowName")
+			{
+				windowName = file.getNextString();
+
+				// Initialize graphics
+				graphics->initialize(screenWidth, screenHeight, windowName);
+			}
+
+			if (command == "")
+			{
+
+			}
+		}
+
+
 		// Initialize input
-		input = std::make_shared<Input>();
-		input->initialize(captureMouse);
+		input->initialize(false);
 
-		// Initialize graphics
-		graphics = std::make_shared<Graphics>();
-		graphics->initialize(screenWidth, screenHeight, spriteSheetPath, fontPath, windowName);
-
+		
 		// Initialize global timer
-		globalTimer = std::make_shared<Timer>();
 		globalTimer->update();
 
 		// Seed rng
@@ -69,6 +112,71 @@ void EngineCore::setupCore(int screenWidth, int screenHeight, bool captureMouse,
 		initialized = true;
 	}
 }
+
+
+
+void EngineCore::loadGame(std::string filePath)
+{
+
+
+	FileHandle file(filePath.c_str());
+
+	if (!file)
+	{
+		// Error
+	}
+
+	std::string assetName;
+	std::string assetPath;
+	std::string operand;
+
+	while (!file.eof())
+	{
+		std::string command = file.getNextString();
+
+		if (command == "AddSpriteSheet")
+		{
+			assetName = file.getNextString();
+			assetPath = file.getNextString();
+
+			graphics->addSpriteSheet(assetName, assetPath);
+		}
+
+		if (command == "AddFont")
+		{
+			assetName = file.getNextString();
+			assetPath = file.getNextString();
+
+			int size = file.getNextInt();
+
+			graphics->addFont(assetName, assetPath, size);
+		}
+
+		if (command == "LoadStates")
+		{
+			operand = file.getNextString();
+			stateFactory->loadStatePaths(operand);
+		}
+
+		if (command == "CreateState")
+		{
+			operand = file.getNextString();
+			gameManager = stateFactory->createState(operand, nullptr);
+		}
+	}
+
+
+	//std::unique_ptr<StateFactory> stateFactory = std::make_shared<StateFactory>();
+
+	StateFactory* stateFactory = new StateFactory();
+
+	
+
+	
+
+}
+
+
 
 bool EngineCore::run()
 {
@@ -82,13 +190,13 @@ bool EngineCore::run()
 	}
 
 	// Update State
-	gameManager->update(deltaTime, input);
+	gameManager->update(deltaTime, input.get());
 
 	// Prepare to Render
 	graphics->beginScene();
 
 	// Render State
-	gameManager->render(graphics);
+	gameManager->render(graphics.get());
 
 	// Finish Rendering
 	graphics->endScene();
@@ -98,10 +206,4 @@ bool EngineCore::run()
 
 	// Game should not exit
 	return false;
-}
-
-
-void EngineCore::setManager(std::shared_ptr<StateManager> gameMgr)
-{
-	gameManager = gameMgr;
 }

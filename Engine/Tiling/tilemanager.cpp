@@ -2,12 +2,16 @@
 
 #include "../Core/graphics.h"
 #include "../Entity/sprite.h"
+#include "../Entity/ispritefactory.h"
 
 #include <memory>
 #include <vector>
 #include <string>
 #include <fstream>
 #include <iostream>
+
+
+#include "../Core/filehandle.h"
 
 
 TileManager::TileManager()
@@ -24,9 +28,6 @@ TileManager::TileManager()
 }
 
 
-
-
-
 void TileManager::update(float deltaTime)
 {
 	// Update each image in the tile set
@@ -40,11 +41,13 @@ void TileManager::update(float deltaTime)
 	}
 }
 
+
 void TileManager::moveGrid(int x, int y)
 {
 	posX = x;
 	posY = y;
 }
+
 
 void TileManager::createGrid(int gridwidth, int gridheight, int tilewidth, int tileheight)
 {
@@ -64,14 +67,17 @@ void TileManager::createGrid(int gridwidth, int gridheight, int tilewidth, int t
 	}
 }
 
-void TileManager::addTileSprite(SpriteType type, std::shared_ptr<Sprite> sprite)
+
+void TileManager::addTileSprite(int tileID, std::unique_ptr<Sprite>& sprite, bool solid)
 {
-	tileSet[(int)type] = sprite;
+	tileSet[tileID] = std::move(sprite);
+	tileSolid[tileID] = solid;
 }
 
-void TileManager::renderTileGrid(std::shared_ptr<Graphics> graphics)
+
+void TileManager::renderTileGrid(Graphics* graphics)
 {
-	std::shared_ptr<Sprite> sprite;
+	Sprite* sprite;
 
 	for (int gridY = 0; gridY < gridHeight; ++gridY)
 	{
@@ -79,7 +85,7 @@ void TileManager::renderTileGrid(std::shared_ptr<Graphics> graphics)
 		for (int gridX = 0; gridX < gridWidth; ++gridX)
 		{
 			int type = getTile(gridX, gridY);
-			sprite = tileSet[type];
+			sprite = tileSet[type].get();
 
 			if (sprite)
 			{
@@ -91,12 +97,14 @@ void TileManager::renderTileGrid(std::shared_ptr<Graphics> graphics)
 	}
 }
 
+
 void TileManager::placeTile(int x, int y, SpriteType type)
 {
 	int index = gridWidth * y + x;
 
 	grid[index] = (int)type;
 }
+
 
 int TileManager::getTile(int x, int y)
 {
@@ -106,9 +114,9 @@ int TileManager::getTile(int x, int y)
 }
 
 
-bool TileManager::loadGridFromFile(std::string path)
+bool TileManager::loadGridFromFile(std::string filepath, ISpriteFactory* spriteFactory)
 {
-	std::fstream gridFile(path.c_str());
+	FileHandle gridFile(filepath.c_str());
 	
 	if (!gridFile)
 	{
@@ -116,18 +124,177 @@ bool TileManager::loadGridFromFile(std::string path)
 		return false;
 	}
 
-	grid.clear();
-
-	int tile;
-
-	gridFile >> tile;
-
-	while (gridFile)
+	while (gridFile.advanceLine())
 	{
-		grid.push_back(tile);
-		gridFile >> tile;
+
+		std::string command = gridFile.getNextString();
+
+		if (command == "SetGrid")
+		{
+			int x = gridFile.getNextInt();
+
+			int y = gridFile.getNextInt();
+
+			int w = gridFile.getNextInt();
+
+			int h = gridFile.getNextInt();
+
+			createGrid(x, y, w, h);
+		}
+		else if (command == "SetTiles")
+		{
+			int tile;
+
+			grid.clear();
+
+			while (!gridFile.eof())
+			{
+				
+				tile = gridFile.getNextCharacter() - 48;
+
+				if (tile != -100)
+				{
+					grid.push_back(tile);
+					//std::cout << "Tile: " << tile << "\n";
+				}
+			}
+
+			return true;
+		}
+		else if (command == "AddTile")
+		{
+			int tileID = gridFile.getNextInt();
+
+			std::string spriteName = gridFile.getNextString();
+
+			int solid = gridFile.getNextInt();
+
+			//std::cout << x << " " << y << "\n";
+
+			std::unique_ptr<Sprite> tileSprite = spriteFactory->createSprite(spriteName);
+
+			addTileSprite(tileID, tileSprite, bool(solid));
+		}
+
 	}
 
-	gridFile.close();
+
+
 	return true;
+	
+}
+
+
+bool TileManager::collidesWith(int x, int y, int w, int h)
+{
+	int tileX;
+	int tileY;
+
+	if (x < 0)
+	{
+		tileX = -( 1 + (-x) / tileWidth );
+	}
+	else
+	{
+		tileX = x / tileWidth;
+	}
+
+	if (y < 0)
+	{
+		tileY = -( 1 + (-y) / tileHeight );
+	}
+	else
+	{
+		tileY = y / tileHeight;
+	}
+
+	
+	
+
+	//std::cout << "x    y    w    h\n" << x << "  " << y << "  " << w << "  " << h << "\n";
+
+	int sizeX = 3;
+	int sizeY = 3;
+
+	for (int i = tileX; i < tileX + sizeX; ++i)
+	{
+		for (int j = tileY; j < tileY + sizeX; ++j)
+		{
+
+			int tx = i * tileWidth;
+			int ty = j * tileHeight;
+
+			//std::cout << i << " " << j << " " << index << " " << tileSolid[grid[index]] << "\n" << "tx   ty   tw   th\n" << tx << "  " << ty << "  " << tileWidth << "  " << tileHeight << "\n\n";
+
+			if (isSolid(i, j))
+			{
+
+				
+
+				if ((x <= (tx + tileWidth)) &&
+					(y <= (ty + tileHeight)) &&
+					(tx <= (x + w)) &&
+					(ty <= (y + h)))
+				{
+
+					/*std::cout << "x    y    w    h\n" << x << "  " << y << "  " << w << "  " << h << "\n";
+					std::cout << "tx   ty   tw   th\n" << tx << "  " << ty << "  " << tileWidth << "  " << tileHeight << "\n";
+					std::cout << i << " " << j << "\n";
+					std::cout << "collision\n\n";*/
+					return true;
+				}
+
+				/*std::cout << "x    y    w    h\n" << x << "  " << y << "  " << w << "  " << h << "\n";
+				std::cout << "tx   ty   tw   th\n" << tx << "  " << ty << "  " << tileWidth << "  " << tileHeight << "\n";
+				std::cout << i << " " << j << "\n";
+				std::cout << "no collision\n\n";*/
+			}
+		}
+	}
+
+	return false;
+}
+
+
+bool TileManager::collidesWith2X2(int x, int y, int w, int h)
+{
+	return false;
+}
+
+
+bool TileManager::isSolid(int x, int y)
+{
+	// consider tiles out of bounds as solid
+	if (x < 0 || y < 0 || x >= gridWidth || y >= gridHeight)
+	{
+		return true;
+	}
+
+	return tileSolid[getTile(x, y)];
+}
+
+
+bool TileManager::isSolid2X2(int x, int y)
+{
+	if (isSolid(x, y) ||
+		isSolid(x + 1, y) ||
+		isSolid(x, y + 1) ||
+		isSolid(x + 1, y + 1))
+	{
+		return true;
+	}
+
+	return false;
+}
+
+
+int TileManager::getXcollision(int x, int w)
+{
+	return 0;
+}
+
+
+int TileManager::getYcollision(int y, int h)
+{
+	return 0;
 }

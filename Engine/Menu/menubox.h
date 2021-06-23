@@ -2,25 +2,12 @@
 
 #include <string>
 #include <memory>
-#include <map>
+#include <vector>
 
 class Sprite;
-typedef std::shared_ptr<Sprite> SpritePtr;
 class Graphics;
-typedef std::shared_ptr<Graphics> GraphicsPtr;
 class Input;
-typedef std::shared_ptr<Input> InputPtr;
 class BoxSprite;
-typedef std::shared_ptr<BoxSprite> BoxSpritePtr;
-
-
-enum class BoxPosition
-{
-	Top,
-	Middle,
-	Bottom
-};
-
 
 struct BoxProperties
 {
@@ -29,19 +16,14 @@ struct BoxProperties
 	int margin;
 	int textScale;
 	std::string text;
-	//SpritePtr boxSprite;
-	BoxSpritePtr boxSprite;
+
+	// Refers to the same boxSprite as the unique pointer
+	BoxSprite* boxSprite;
 };
 
 class MenuBox
 {
-	typedef std::shared_ptr<MenuBox> BoxPtr;
-
-public:
-
-	
-
-	
+	typedef std::unique_ptr<MenuBox> BoxPtr;
 
 protected:
 
@@ -49,38 +31,34 @@ protected:
 
 	bool pressed;
 
+	bool initialized;
+
 	MenuBox* parentBox;
 
 	BoxProperties properties;
+	std::unique_ptr<BoxSprite> boxSprite;
 
-	std::map<BoxPosition, BoxPtr> boxMap;
+	std::vector<BoxPtr> boxList;
 
-	std::map<BoxPosition, BoxPtr>::iterator selectedChild;
+	std::vector<BoxPtr>::iterator selectedChild;
 
 public:
 
-	MenuBox(std::string text, BoxSpritePtr sprite, int scale)
-		: selected(false), parentBox(nullptr)
-	{
+	MenuBox(std::string text, std::unique_ptr<BoxSprite>& sprite, int scale);
 
-		properties = { 28, scale, text, sprite };
+	virtual ~MenuBox();
 
-		selectedChild = boxMap.end();
-	}
+	void update(Input* input);
 
-	virtual ~MenuBox() {}
+	void render(Graphics* graphics);
 
-	void update(InputPtr input);
-
-	void render(GraphicsPtr graphics);
-
-	const BoxProperties& getProperties() { return properties; }
+	const BoxProperties& getProperties();
 
 	void setParent(MenuBox* parent) { parentBox = parent; }
 
-	void addChild(BoxPosition position, std::shared_ptr<MenuBox> box);
+	void addChild(std::unique_ptr<MenuBox>& box);
 
-	void selectChild(BoxPosition position);
+	//void selectChild(std::string position);
 
 	void moveSelectionDown();
 

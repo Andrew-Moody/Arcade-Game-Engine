@@ -1,13 +1,12 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 class Message;
-typedef std::shared_ptr<Message> MessagePtr;
+typedef std::shared_ptr<Message> MessageSPtr;
 class Input;
-typedef std::shared_ptr<Input> InputPtr;
 class Graphics;
-typedef std::shared_ptr<Graphics> GraphicsPtr;
 
 class IGameState
 {
@@ -18,12 +17,21 @@ public:
 
 	//virtual void postMessage(MessagePtr message) = 0;
 
-	virtual void handleMessage(MessagePtr message) = 0;
+	virtual void handleMessage(MessageSPtr message) = 0;
 
-	virtual void initialize() = 0;
+	virtual void initialize(std::string path) = 0;
 
-	virtual void update(float deltaTime, InputPtr input) = 0;
+	virtual void update(float deltaTime, Input* input) = 0;
 
-	virtual void render(GraphicsPtr graphics) = 0;
+	virtual void render(Graphics* graphics) = 0;
+
+
+	virtual void setRemoveOnExit(bool remove) = 0;
+	virtual bool getRemoveOnExit() = 0;
+
+	virtual void setName(std::string name) = 0;
+	virtual std::string getName() = 0;
+
+
 
 };

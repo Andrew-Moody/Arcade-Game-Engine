@@ -7,66 +7,51 @@
 #include "../Message/message.h"
 #include "../Message/messages.h"
 
+#include "istatefactory.h"
+
+#include "../Core/filehandle.h"
+
 #include <iostream>
 
-StateManager::StateManager(std::weak_ptr<IGameState> parentState)
-	: BaseState(parentState)
+StateManager::StateManager(IGameState* parentState, IStateFactory* stateFactory, std::string name)
+	: BaseState(parentState, name), stateFactory(stateFactory)
 {
-	mailBox = std::make_shared<MailBox>();
-	mailAddress = std::make_shared<MailAddress>(mailBox);
+mailBox = std::make_unique<MailBox>();
+mailAddress = mailBox->getAddress();
 
-	spriteSheet = "";
-	font = "";
+spriteSheet = "Default";
+font = "Default";
 }
 
 
 StateManager::~StateManager()
 {
-	
+
 }
 
 
-MailAddressPtr StateManager::getMailAddress()
+MailAddress* StateManager::getMailAddress()
 {
-	return mailAddress;	
+	return mailAddress.get();
 }
 
 
-MailBoxPtr StateManager::getMailBox()
+MailBox* StateManager::getMailBox()
 {
-	return mailBox;
+	return mailBox.get();
 }
 
 
-bool StateManager::changeState(int type)
+void StateManager::addState(std::string name, std::unique_ptr<IGameState>& state)
 {
-	// Find the state associated with type
-	auto conIter = stateMap.find(type);
-	if (conIter != stateMap.end())
-	{
-		popState();
-		pushState(type);
-
-		return true;
-	}
-	else
-	{
-		// there is currently no state of that type
-		return false;
-	}
-}
-
-
-void StateManager::addState(int type, StatePtr state)
-{
-	// Ensure there is no state associated with type
-	auto conIter = stateMap.find(type);
+	// Ensure there is no state associated with name
+	auto conIter = stateMap.find(name);
 	if (conIter == stateMap.end())
 	{
 		// add the state to the map if state is valid
 		if (state)
 		{
-			stateMap[type] = state;
+			stateMap[name] = std::move(state);
 		}
 		else
 		{
@@ -75,15 +60,15 @@ void StateManager::addState(int type, StatePtr state)
 	}
 	else
 	{
-		// there is already a state of that type
+		// there is already a state of that name
 	}
 }
 
 
-void StateManager::removeState(int type)
+void StateManager::removeState(std::string name)
 {
-	// Find the state associated with type
-	auto conIter = stateMap.find(type);
+	// Find the state associated with name
+	auto conIter = stateMap.find(name);
 	if (conIter != stateMap.end())
 	{
 
@@ -94,38 +79,96 @@ void StateManager::removeState(int type)
 		}
 
 		// remove the state from the map
+
+		std::cout << "Removing State: " << conIter->first << " At: " << conIter->second << std::endl;
 		stateMap.erase(conIter);
 	}
 	else
 	{
-		// there is currently no state of that type
+		// there is currently no state of that name
 	}
 }
 
 
-bool StateManager::pushState(int type)
+void StateManager::updateStack()
 {
-	// Check that this manager has that state available
-	auto iter = stateMap.find(type);
-	if (iter != stateMap.end())
+	if (updateMessage)
 	{
-		// Check if state is still valid
-		if (iter->second)
+		if (updateMessage->changeType == StateChangeType::ChangeState)
 		{
-			stateStack.push_back(iter->second);
-
-			//stateStack.back()->enter();
+			changeState(updateMessage->state);
+		}
+		else if (updateMessage->changeType == StateChangeType::PushState)
+		{
+			pushState(updateMessage->state);
+		}
+		else if (updateMessage->changeType == StateChangeType::PopState)
+		{
+			popState();
 		}
 
-		std::cout << "Pushed State: " << type << " " << stateStack.back().get() << "by " << this << std::endl;
+		updateMessage = nullptr;
+	}
+}
+
+bool StateManager::changeState(std::string name)
+{
+	// Find the state associated with name
+	auto conIter = stateMap.find(name);
+	if (conIter != stateMap.end())
+	{
+		popState();
+		pushState(name);
 
 		return true;
 	}
 	else
 	{
-		// There is no state of that type;
-		std::cout << "Failed To Push State: " << type << std::endl;
-		return false;
+		std::cout << "new state created by " << this << "\n";
+
+		popState();
+		return pushState(name);
+	}
+}
+
+
+bool StateManager::pushState(std::string name)
+{
+	// Check that this manager has that state available
+	auto iter = stateMap.find(name);
+	if (iter != stateMap.end())
+	{
+		// Check if state is still valid
+		if (iter->second)
+		{
+			stateStack.push_back(iter->second.get());
+
+			//stateStack.back()->enter();
+		}
+
+		// Push was successful
+		std::cout << "Pushed State: " << name << " " << stateStack.back() << " by " << this->name << " " << this << std::endl;
+
+		return true;
+	}
+	else
+	{
+		// Create a new state of that name
+		std::unique_ptr<IGameState> state = stateFactory->createState(name, this);
+
+		if (state)
+		{
+			addState(name, state);
+
+			return pushState(name);
+		}
+		else
+		{
+			// There is no state of that name;
+			std::cout << "Failed To Push State: " << name << std::endl;
+
+			return false;
+		}
 	}
 }
 
@@ -134,10 +177,18 @@ bool StateManager::popState()
 {
 	if (!stateStack.empty())
 	{
-		std::cout << "Popped State: " << stateStack.back().get() << "by " << this << std::endl;
-		//stateStack.back()->exit();
+		IGameState* state = stateStack.back();
 		stateStack.pop_back();
 
+		std::cout << "Popped State: " << state->getName() << " " << state << " by " << this->name << " " << this << std::endl;
+		//state->exit();
+
+		if (state->getRemoveOnExit())
+		{
+			std::string name = state->getName();
+			removeState(name);
+		}
+		
 		return true;
 	}
 	else
@@ -150,18 +201,26 @@ bool StateManager::popState()
 }
 
 
-void StateManager::update(float deltaTime, InputPtr input)
+void StateManager::update(float deltaTime, Input* input)
 {
 	// Check messages to determine if state needs to change
 	// Send messages if parent state needs to change
-	//setCurrentState(message->stateType);
+
+
+	// Update the top state
+	if (!stateStack.empty())
+	{
+		stateStack.back()->update(deltaTime, input);
+	}
+
+
 	if (mailBox)
 	{
 		if (!mailBox->isEmpty())
 		{
 			std::shared_ptr<Message> message = mailBox->getMessage();
 
-			if (message->getType() == MsgType::ChangeState || message->getType() == MsgType::PushState || message->getType() == MsgType::PopState)
+			if (message->getType() == MsgType::StateChange)
 			{
 				std::cout << "message\n";
 				handleMessage(message);
@@ -170,23 +229,21 @@ void StateManager::update(float deltaTime, InputPtr input)
 	}
 
 
-	// Update the top state
-	if (!stateStack.empty())
-	{
-		stateStack.back()->update(deltaTime, input);
-	}
+	updateStack();
+
+	
 }
 
 
-void StateManager::render(GraphicsPtr graphics)
+void StateManager::render(Graphics* graphics)
 {
 
-	if (spriteSheet != "")
+	if (spriteSheet != "Default")
 	{
 		graphics->setSpriteSheet(spriteSheet);
 	}
 
-	if (font != "")
+	if (font != "Default")
 	{
 		graphics->setFont(font);
 	}
@@ -201,38 +258,83 @@ void StateManager::render(GraphicsPtr graphics)
 
 void StateManager::handleMessage(std::shared_ptr<Message> message)
 {
-
+	std::cout << "message handle attempt " << this << "\n";
 	bool handled = false;
 
-	if (message->getType() == MsgType::ChangeState)
+	if (message->getType() == MsgType::StateChange)
 	{
-		std::shared_ptr<MSGChangeState> msg = std::static_pointer_cast<MSGChangeState>(message);
+		std::shared_ptr<MSGStateChange> msg = std::static_pointer_cast<MSGStateChange>(message);
 		
-		handled = changeState(msg->state);
-	}
-	else if (message->getType() == MsgType::PushState)
-	{
-		std::shared_ptr<MSGPushState> msg = std::static_pointer_cast<MSGPushState>(message);
+		std::cout << "attempt to change" << this << "\n";
 
-		handled = pushState(msg->state);
+		if (msg->changeType == StateChangeType::PopState && !stateStack.empty())
+		{
+			updateMessage = msg;
+			handled = true;
+			
+		}
+		else if (isValidTransition(msg->state))
+		{
+			updateMessage = msg;
+			handled = true;
+		}
+
+		if (!handled)
+		{
+			// Pass it up the chain
+			if (parentState)
+			{
+				parentState->handleMessage(message);
+			}
+			else
+			{
+				// No parent
+				// invalid state change request
+				std::cout << "INVALID STATE TRANSITION\n";
+			}
+		}
 	}
-	else if (message->getType() == MsgType::PopState)
+}
+
+
+bool StateManager::isValidTransition(std::string name)
+{
+	if (std::find(validStates.begin(), validStates.end(), name) == validStates.end())
 	{
-		handled = popState();
+		std::cout << "Failed To Push State: " << name << " is not a valid transition" << std::endl;
+		return false;
 	}
 
-	if (!handled)
+	return true;
+}
+
+
+void StateManager::initialize(std::string path)
+{
+	FileHandle file(path.c_str());
+
+	while (!file.eof())
 	{
-		// Pass it up the chain
-		if (auto parent = parentState.lock())
+		std::string command = file.getNextString();
+
+		if (command == "ChildStates")
 		{
-			parent->handleMessage(message);
+			while (!file.endOfLine())
+			{
+				validStates.push_back(file.getNextOptionalString());
+			}
 		}
-		else
+
+		if (command == "InitialState")
 		{
-			// No parent
-			// invalid state change request
-			std::cout << "INVALID STATE TRANSITION\n";
+			pushState(file.getNextString());
+		}
+
+		if (command == "test")
+		{
+
 		}
 	}
+
+
 }

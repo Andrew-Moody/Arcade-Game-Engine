@@ -9,7 +9,7 @@
 #include "iostream"
 
 
-Button::Button(std::string text, std::shared_ptr<BoxSprite> sprite, int scale, MsgPtr msg, MailAddressPtr address)
+Button::Button(std::string text, std::unique_ptr<BoxSprite>& sprite, int scale, std::shared_ptr<Message> msg, MailAddress* address)
 	: MenuBox(text, sprite, scale), message(msg), mailAddress(address), pressed(false)
 {
 
@@ -21,7 +21,9 @@ Button::~Button() {}
 void Button::select()
 {
 	selected = true;
-	properties.boxSprite->setSRC(16, 0);
+	int currentX = properties.boxSprite->getSRCX();
+	int currentY = properties.boxSprite->getSRCY();
+	properties.boxSprite->setSRC(currentX + 16, currentY);
 }
 
 // Revert sprite to unselected state
@@ -29,7 +31,9 @@ void Button::deselect()
 {
 	selected = false;
 
-	properties.boxSprite->setSRC(0, 0);
+	int currentX = properties.boxSprite->getSRCX();
+	int currentY = properties.boxSprite->getSRCY();
+	properties.boxSprite->setSRC(currentX - 16, currentY);
 }
 
 // Action to perform when button is activated

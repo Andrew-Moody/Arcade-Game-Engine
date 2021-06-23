@@ -15,6 +15,8 @@ class PhysicsObject
 	// Physics properties
 	float posX;
 	float posY;
+	float prevPosX;
+	float prevPosY;
 	float velX;
 	float velY;
 	float rotation;
@@ -28,6 +30,9 @@ public:
 	// Called once per frame to update by the elapsed time in milliseconds
 	void update(float deltaTime);
 
+	void updateX(float deltaTime);
+
+	void updateY(float deltaTime);
 
 	void setPosition(float x, float y);
 
@@ -42,11 +47,19 @@ public:
 	// Check if the calling entity is colliding with the entity passed in
 	bool collideWith(std::shared_ptr<PhysicsObject> entity);
 
-	// eventually want to have a bounce function that takes a vector normal to the surface hit
-	void bounce(); 
+	void revertX(int width, int clearance);
+	void revertY(int height, int clearance);
 
 
 	float getX();
 	float getY();
+	float getVelX()
+	{
+		return velX;
+	}
+	float getVelY()
+	{
+		return velY;
+	}
 	HitBox getHitBox();
 };

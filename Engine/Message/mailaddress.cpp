@@ -2,7 +2,7 @@
 #include "mailbox.h"
 
 
-MailAddress::MailAddress(std::weak_ptr<MailBox> address)
+MailAddress::MailAddress(MailBox* address)
 	: mailAddress(address)
 {
 
@@ -10,8 +10,5 @@ MailAddress::MailAddress(std::weak_ptr<MailBox> address)
 
 void MailAddress::postMessage(std::shared_ptr<Message> message)
 {
-	if (auto address = mailAddress.lock())
-	{
-		address->addMessage(message);
-	}
+	mailAddress->addMessage(message);
 }

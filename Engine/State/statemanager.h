@@ -11,17 +11,16 @@
 //enum class StateType : int;
 
 class IGameState;
-typedef std::shared_ptr<IGameState> StatePtr;
 
 class Input;
-typedef std::shared_ptr<Input> InputPtr;
 class Graphics;
-typedef std::shared_ptr<Graphics> GraphicsPtr;
 
 class MailBox;
-typedef std::shared_ptr<MailBox> MailBoxPtr;
 class MailAddress;
-typedef std::shared_ptr<MailAddress> MailAddressPtr;
+
+class IStateFactory;
+
+class MSGStateChange;
 
 
 class StateManager : public BaseState
@@ -30,58 +29,97 @@ class StateManager : public BaseState
 
 protected:
 
-	MailBoxPtr mailBox;
-	MailAddressPtr mailAddress;
+	std::unique_ptr<MailBox> mailBox;
+	std::unique_ptr<MailAddress> mailAddress;
 
-	std::map<int, StatePtr> stateMap;
-
-	std::vector<StatePtr> stateStack;
-
+	// Textures and font to use to render this state
 	std::string spriteSheet;
 	std::string font;
 
+	// The Factory used to create new states
+	IStateFactory* stateFactory;
+
+	// Map of states that are currently being kept alive (may not be on stack)
+	std::map<std::string, std::unique_ptr<IGameState>> stateMap;
+
+	// Stack of states that will be updated and rendered
+	std::vector<IGameState*> stateStack;
+
+	// List of States that are allowed to be created
+	std::vector<std::string> validStates;
+
+	// Message containing information for next stack update
+	std::shared_ptr<MSGStateChange> updateMessage;
+
 public:
 
-	StateManager(std::weak_ptr<IGameState> parentState);
+	StateManager(IGameState* parentState, IStateFactory*, std::string name);
 	virtual ~StateManager();
 
-	// Used to send messages to the manager. Allows you to send a message to the box while not allowing direct access
-	MailAddressPtr getMailAddress();
+	// Setup the state with data from a file
+	void initialize(std::string path) override;
 
-	// Used if you need to subscribe the mailbox to a publisher
-	MailBoxPtr getMailBox();
+	// Updates the state on top of stack
+	void update(float deltaTime, Input* input) override;
+
+	// Renders the state stack
+	void render(Graphics* graphics) override;
+
+
+
+	// Attempt to handle the message immediatly and pass it on to parent if unable to handle
+	virtual void handleMessage(std::shared_ptr<Message> message) override;
 
 	
 
+
+	// Map manipulation
+
 	// Add a state to the stateMap
-	void addState(int type, StatePtr state);
+	void addState(std::string name, std::unique_ptr<IGameState>& state);
 
 	// Remove a state from the stateMap
-	void removeState(int type);
+	void removeState(std::string name);
 
-	// Change the current state to the desired type  Returns true if type is valid
-	bool changeState(int type);
+	bool isValidTransition(std::string name);
+
+	// Stack manipulation
+
+	// Handle State Changes
+	void updateStack();
+
+	// Change the current state on the stack to the desired state
+	bool changeState(std::string name);
 
 	// Add the desired state to the top of the stack
-	bool pushState(int type);
+	bool pushState(std::string name);
 
 	// Remove the state on the top of the stack
 	bool popState();
 
 
-	void initialize() override {}
+	
 
-	// Updates the state on top of stack
-	void update(float deltaTime, InputPtr input) override;
 
-	// Renders the state stack
-	void render(GraphicsPtr graphics) override;
 
-	virtual void handleMessage(std::shared_ptr<Message> message) override;
+	
 
 	// Specify what spriteSheet is to be used to render the state
 	void setSpriteSheet(std::string spriteSheet) { this->spriteSheet = spriteSheet; }
 
 	// Specify what font is to be used to render the state
 	void setFont(std::string font) { this->font = font; }
+
+	void setStateFactory(IStateFactory* stateFactory) { this->stateFactory = stateFactory; }
+
+	
+
+
+
+
+	// Used to send messages to the manager. Allows you to send a message to the box while not allowing direct access
+	MailAddress* getMailAddress();
+
+	// Used if you need to subscribe the mailbox to a publisher
+	MailBox* getMailBox();
 };

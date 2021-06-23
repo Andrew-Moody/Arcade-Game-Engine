@@ -11,8 +11,6 @@
 #include "../Menu/boxsprite.h"
 
 
-
-
 Graphics::Graphics() : window(nullptr), renderer(nullptr), initialized(false) 
 {
 	currentTexture = textureMap.end();
@@ -24,15 +22,13 @@ Graphics::~Graphics()
 	close();
 }
 
-void Graphics::initialize(int screenWidth, int screenHeight, std::string spriteSheetPath, std::string fontPath, std::string windowName)
+void Graphics::initialize(int screenWidth, int screenHeight, std::string windowName)
 {
+	// Create a window
+
 	if (!initialized)
 	{
 		assert(my_SDL_init(screenWidth, screenHeight, windowName));
-		
-		addSpriteSheet("Default", spriteSheetPath);
-
-		addFont("Default", fontPath, 48);
 
 		initialized = true;
 	}
@@ -40,7 +36,7 @@ void Graphics::initialize(int screenWidth, int screenHeight, std::string spriteS
 
 
 
-void Graphics::draw(std::shared_ptr<Sprite> sprite)
+void Graphics::draw(Sprite* sprite)
 {
 	ImageProperties ip = sprite->getImageProperties();
 
@@ -65,7 +61,7 @@ void Graphics::drawBox(MenuBox* box)
 	BoxProperties prop = box->getProperties();
 
 	//draw(prop.boxSprite);
-	drawBoxSprite(prop.boxSprite.get());
+	drawBoxSprite(prop.boxSprite);
 	
 
 	SDL_Color color = { 0, 0, 0 };

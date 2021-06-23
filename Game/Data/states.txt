@@ -1,0 +1,9 @@
+#State Type Path
+GameManager State Game/Data/Menus/GameManager.txt
+MainMenu Menu Game/Data/Menus/MainMenu.txt
+TestGame State Game/Data/Menus/TestGame.txt
+GameMenu Menu Game/Data/Menus/GameMenu.txt
+PauseGame Menu Game/Data/Menus/PauseGame.txt
+GameOver Menu Game/Data/Menus/GameOver.txt
+Level1 Level Game/Data/Levels/Level1.txt
+Level2 Level Game/Data/Levels/Level2.txt

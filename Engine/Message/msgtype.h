@@ -4,10 +4,10 @@
 
 enum class MsgType : int
 {
-	ChangeState,
-	PushState,
-	PopState,
+	StateChange,
 	Control,
 	PlayerMoved,
-	LaunchProjectile
+	LaunchProjectile,
+	Collision,
+	EntityDestroyed,
 };

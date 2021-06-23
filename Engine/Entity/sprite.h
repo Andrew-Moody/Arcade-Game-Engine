@@ -33,7 +33,7 @@ class Sprite
 public:
 
 	Sprite();
-	~Sprite() {}
+	~Sprite();
 
 
 	void update(float frameTime);
