@@ -2,7 +2,7 @@
 ### Arcade Game Engine written in C++ with SDL2
 
 As part of Harvard's CS50x online course, we are asked to create a final project that can be anything we want.
-The project I have chosen to create is a game engine that provides all the facilities necessary to create arcade style games. The engine is written in C++ and uses SDL2 to handle texture rendering. The engine will allow switching between multiple games at runtime by means of a game select menu.
+The project I have chosen to create is a game engine that provides all the facilities necessary to create arcade style games. The engine is written in C++ and uses SDL2 to handle texture rendering, input, and sound. The engine will allow switching between multiple games at runtime by means of a game select menu.
 Along with the engine, a few sample games will be created to show off features of the engine. 
 
 
@@ -16,6 +16,17 @@ I am using SDL_image to load png images. To enable png loading you will need to 
 There is an excellent tutorial on setting up these libraries for several different operating systems and IDE's at https://lazyfoo.net/tutorials/SDL/01_hello_SDL/index.php
 
 ##### Version History:
+
+6/22/21
+* Refactored all game specific factories to build their respective objects using text files rather than hard coded values. This allows the factories to be moved into the engine as they no longer contain game specific code.
+* A component factory was added that allows user created classes to be instantiated by the built-in factories. After creating a new class, users must add an entry to the component registry function.
+* The game folder now contains only user created components, levels, and text files.
+* Sample Game now features a Pacman style maze with several ghosts.
+* Getting caught by a ghost decreases lives left. Running out of lives causes the game to end
+* Fireballs can be launched to kill ghosts, removing them from the level and increasing the score.
+* After killing a ghost, the remaining ghosts retreat for a few seconds before resuming the chase.
+* killing all the ghosts on a level will cause the next level to be entered.
+
 
 5/11/21
 * Changed stateManager class to act as a state but contain a managed stack of child states. 
