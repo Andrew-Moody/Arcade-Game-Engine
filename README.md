@@ -11,11 +11,19 @@ To build this project yourself you will require the following dependencies:
 * SDL2 32bit version 2.0.14
 * SDL_image 32bit version 2.0.5
 * SDL_ttf 32bit version 2.0.15
+* SDL_mixer 32bit version 2.0.4
 
 I am using SDL_image to load png images. To enable png loading you will need to put the libpng16-16.dll file that comes with SDL_image in your source directory.
 There is an excellent tutorial on setting up these libraries for several different operating systems and IDE's at https://lazyfoo.net/tutorials/SDL/01_hello_SDL/index.php
 
 ##### Version History:
+
+6/30/21
+* Added the Audio class to wrap SDL_mixer and handle WAV loading and playback.
+* StateFactory can now create user defined level types using a registration mechanism similar to that of the component factory.
+* Game specific logic was moved from the LevelState into a user defined level type.
+* Sample game now plays appropriate sounds when launching fireballs, killing ghosts, or on player death.
+
 
 6/22/21
 * Refactored all game specific factories to build their respective objects using text files rather than hard coded values. This allows the factories to be moved into the engine as they no longer contain game specific code.
