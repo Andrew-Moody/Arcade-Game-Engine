@@ -11,8 +11,10 @@
 //enum class StateType : int;
 
 class IGameState;
+class EngineCore;
 
 class Input;
+class Audio;
 class Graphics;
 
 class MailBox;
@@ -53,14 +55,14 @@ protected:
 
 public:
 
-	StateManager(IGameState* parentState, IStateFactory*, std::string name);
+	StateManager(std::string name, IGameState* parentState, EngineCore* engineCore, IStateFactory* stateFactory);
 	virtual ~StateManager();
 
 	// Setup the state with data from a file
 	void initialize(std::string path) override;
 
 	// Updates the state on top of stack
-	void update(float deltaTime, Input* input) override;
+	void update(float deltaTime, Input* input, Audio* audio) override;
 
 	// Renders the state stack
 	void render(Graphics* graphics) override;

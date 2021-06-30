@@ -17,10 +17,11 @@
 
 #include <iostream>
 
+#include "../../Game/Data/Levels/userlevelregistry.h"
 
 StateFactory::StateFactory()
 {
-
+	User::RegisterUserLevels(this);
 }
 
 
@@ -59,7 +60,7 @@ void StateFactory::loadStatePaths(std::string path)
 }
 
 
-std::unique_ptr<IGameState> StateFactory::createState(std::string name, IGameState* parentState)
+std::unique_ptr<IGameState> StateFactory::createState(std::string name, IGameState* parentState, EngineCore* engineCore)
 {
 
 	std::string type;
@@ -71,24 +72,35 @@ std::unique_ptr<IGameState> StateFactory::createState(std::string name, IGameSta
 		type = iter->second.first;
 		statePath = iter->second.second;
 	}
+	else
+	{
+		std::cout << "Error Creating State: " << name << " has invalid type\n";
+		return nullptr;
+	}
 	
 	std::unique_ptr<IGameState> state;
 
 	if (type == "State")
 	{
-		state = std::make_unique<StateManager>(parentState, this, name);
+		state = std::make_unique<StateManager>(name, parentState, engineCore, this);
 	}
 	else if (type == "Menu")
 	{
-		state = std::make_unique<MenuState>(parentState, this, name);
+		state = std::make_unique<MenuState>(name, parentState, engineCore, this);
 	}
 	else if (type == "Level")
 	{
-		state = std::make_unique<LevelState>(parentState, this, name);
+		state = std::make_unique<LevelState>(name, parentState, engineCore);
 	}
 	else
 	{
-		std::cout << "Error Creating State: " << name << " has invalid type\n";
+		state = createLevel(type, name, parentState, engineCore);
+
+		if (!state)
+		{
+			std::cout << "Error Creating State: " << type << " is not a valid type\n";
+			return nullptr;
+		}
 	}
 	
 
@@ -99,145 +111,34 @@ std::unique_ptr<IGameState> StateFactory::createState(std::string name, IGameSta
 }
 
 
-//std::unique_ptr<IGameState> StateFactory::createState(int type, IGameState* parentState)
-//{
-//	std::unique_ptr<IGameState> state = nullptr;
-//
-//	switch ((StateType)type)
-//	{
-//		case StateType::GameMenu :
-//		{
-//			std::unique_ptr<MenuState> menu = std::make_unique<MenuState>(parentState, this, (int)StateType::GameMenu);
-//			menu->initialize();
-//
-//			menu->setSpriteSheet("Default");
-//
-//			std::unique_ptr<MenuBox> box = boxFactory->createBox(BoxType::GameMenu, menu->getMailAddress());
-//
-//			menu->setBox(box);
-//
-//			state = std::move(menu);
-//
-//			break;
-//		}
-//
-//		case StateType::Level1:
-//		{
-//			std::unique_ptr<LevelState> level1 = std::make_unique<LevelState>(parentState, this, (int)StateType::Level1);
-//			level1->initFromFile("Game/Data/level1.txt");
-//			level1->setNextLevel(7);
-//			state = std::move(level1); 
-//
-//			break;
-//		}
-//
-//		case StateType::Level2:
-//		{
-//			std::unique_ptr<LevelState> level2 = std::make_unique<LevelState>(parentState, this, (int)StateType::Level2);
-//			level2->initFromFile("Game/Data/level2.txt");
-//			level2->setNextLevel(1);
-//			state = std::move(level2);
-//
-//			break;
-//		}
-//
-//
-//		case StateType::PauseGame :
-//		{
-//
-//			std::unique_ptr<MenuState> pauseMenu = std::make_unique<MenuState>(parentState, this, (int)StateType::PauseGame);
-//			pauseMenu->initialize();
-//
-//			//pauseMenu->setSpriteSheet("");
-//
-//			std::unique_ptr<MenuBox> box = boxFactory->createBox(BoxType::PauseMenu, pauseMenu->getMailAddress());
-//
-//			pauseMenu->setBox(box);
-//
-//			state = std::move(pauseMenu);
-//
-//			break;
-//		}
-//
-//		case StateType::GameOver:
-//		{
-//
-//			std::unique_ptr<MenuState> gameOver = std::make_unique<MenuState>(parentState, this, (int)StateType::GameOver);
-//			gameOver->initialize();
-//
-//			//pauseMenu->setSpriteSheet("");
-//
-//			std::unique_ptr<MenuBox> box = boxFactory->createBox(BoxType::GameOver, gameOver->getMailAddress());
-//
-//			gameOver->setBox(box);
-//
-//			state = std::move(gameOver);
-//
-//			break;
-//		}
-//		
-//
-//		case StateType::MainMenu:
-//		{
-//
-//			std::unique_ptr<MenuState> mainMenu = std::make_unique<MenuState>(parentState, this, (int)StateType::MainMenu);
-//			mainMenu->initialize();
-//
-//			mainMenu->setSpriteSheet("MainMenu");
-//
-//			std::unique_ptr<MenuBox> box = boxFactory->createBox(BoxType::MainMenu, mainMenu->getMailAddress());
-//
-//			mainMenu->setBox(box);
-//
-//			state = std::move(mainMenu);
-//
-//			break;
-//		}
-//
-//		case StateType::TestGame :
-//		{
-//			std::unique_ptr<StateManager> testGame = std::make_unique<StateManager>(parentState, this, (int)StateType::TestGame);
-//			testGame->initialize();
-//
-//			// Add states
-//
-//			std::vector<int> validTransitions{0, 1, 4, 5, 7};
-//			testGame->setValidStates(std::move(validTransitions));
-//
-//			// Set the initial state
-//			testGame->pushState(static_cast<int>(StateType::Menu));
-//
-//			state = std::move(testGame);
-//
-//			break;
-//		}
-//
-//		case StateType::GameManager :
-//		{
-//			std::unique_ptr<StateManager> gameManager = std::make_unique<StateManager>(nullptr, this, (int)StateType::GameManager);
-//
-//			std::vector<int> validStates{ 2, 3 };
-//
-//			gameManager->setValidStates(std::move(validStates));
-//
-//			// Set the initial state
-//			gameManager->pushState(static_cast<int>(StateType::MainMenu));
-//
-//			state = std::move(gameManager);
-//
-//			break;
-//		}
-//
-//
-//		default :
-//		{
-//			// Error unrecognized type
-//			
-//			break;
-//		}
-//	}
-//
-//	return state;
-//}
+std::unique_ptr<IGameState> StateFactory::createLevel(std::string levelType, std::string levelName, IGameState* parentState, EngineCore* engineCore)
+{
+	auto iter = createLevelMap.find(levelType);
+	if (iter != createLevelMap.end())
+	{
+		return iter->second(levelName, parentState, engineCore);
+	}
+	else
+	{
+		std::cout << "Level Creation Error: " << levelType << " is not a registered Level type\n";
+		return nullptr;
+	}
+}
+
+void StateFactory::registerLevel(std::string levelType, CreateLevelMethod createLevelMethod)
+{
+	if (levelType == "Level")
+	{
+		std::cout << "Level is a reserved level type name\n";
+	}
+	else if (createLevelMap.find(levelType) == createLevelMap.end())
+	{
+		createLevelMap[levelType] = createLevelMethod;
+	}
+	else
+	{
+		std::cout << "Level Type Registration Error: " << levelType << " was already registered\n";
+	}
+}
 
 

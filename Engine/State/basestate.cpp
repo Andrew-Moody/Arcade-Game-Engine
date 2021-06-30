@@ -3,8 +3,8 @@
 #include "statemanager.h"
 #include "../Message/mailaddress.h"
 
-BaseState::BaseState(IGameState* state, std::string name)
-	: parentState(state), name(name), removeOnExit(true)
+BaseState::BaseState(std::string name, IGameState* parentState, EngineCore* engineCore)
+	: name(name), parentState(parentState), engineCore(engineCore), removeOnExit(true)
 {
 	
 }

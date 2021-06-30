@@ -3,6 +3,11 @@
 #include <SDL.h>
 #include <string>
 
+#include <memory>
+
+class MailBox;
+class MessageBus;
+
 class Input
 {
 private:
@@ -16,11 +21,12 @@ private:
 	bool mouseRButton;
 	bool mouseMButton;
 
-	
+	SDL_Event sdl_event; //holds event information from the most recent poll
 
+	std::unique_ptr<MailBox> mailBox;
 
 public:
-	Input();
+	Input(MessageBus* messageBus);
 	~Input();
 
 	enum class ClearType : int
@@ -35,9 +41,12 @@ public:
 	// with SDL all we are really doing here is choosing if we want to capture the mouse
 	void initialize(bool captureMouse);
 
+	void update(float deltaTime);
+
+
 	// Handles an SDL_Event and updates keys down, pressed, mouse state etc.
 	// Returns true if event was an exit event
-	bool inputIn(SDL_Event& event);
+	bool handleSDLEvent(SDL_Event& event);
 
 	// key specifies the key to test.
 	// e.key.keysym.sym returns a enumeration that maps to the ascii code of the key
@@ -63,8 +72,8 @@ public:
 	// Get mouse info
 	int getMouseX() const { return mouseX; }
 	int getMouseY() const { return mouseY; }
-	bool getMouseLButton(bool b) { return mouseLButton = b; }
-	bool getMouseRButton(bool b) { return mouseRButton = b; }
-	bool getMouseMButton(bool b) { return mouseMButton = b; }
+	bool getMouseLButton() const { return mouseLButton; }
+	bool getMouseRButton() const { return mouseRButton; }
+	bool getMouseMButton() const { return mouseMButton; }
 
 };

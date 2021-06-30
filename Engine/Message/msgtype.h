@@ -10,4 +10,7 @@ enum class MsgType : int
 	LaunchProjectile,
 	Collision,
 	EntityDestroyed,
+	PlayMusic,
+	PlaySound,
+	ExitApplication,
 };

@@ -3,8 +3,17 @@
 #include <SDL.h>
 #include <string>
 
-Input::Input()
+#include <iostream>
+
+#include "../Message/mailbox.h"
+#include "../Message/msgtype.h"
+#include "../Message/messages.h"
+
+Input::Input(MessageBus* messageBus)
 {
+	mailBox = std::make_unique<MailBox>();
+	mailBox->setPublisher(messageBus);
+
 	clearAll();
 }
 
@@ -28,9 +37,29 @@ void Input::initialize(bool captureMouse)
 }
 
 
+void Input::update(float deltaTime)
+{
+	bool exit = false;
+
+	//handle all messages in queue
+	while (SDL_PollEvent(&sdl_event))
+	{
+		if (handleSDLEvent(sdl_event))
+		{
+			exit = true;
+		}
+	}
+
+	if (exit)
+	{
+		//send message to exit
+		mailBox->postMessage(std::make_shared<MSGExitApplication>());
+	}
+}
+
 
 //Handle a SDL_Event
-bool Input::inputIn(SDL_Event& event)
+bool Input::handleSDLEvent(SDL_Event& event)
 {
 	if (event.type == SDL_QUIT)
 	{

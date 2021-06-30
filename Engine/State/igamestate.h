@@ -5,7 +5,10 @@
 
 class Message;
 typedef std::shared_ptr<Message> MessageSPtr;
+
+class EngineCore;
 class Input;
+class Audio;
 class Graphics;
 
 class IGameState
@@ -21,7 +24,7 @@ public:
 
 	virtual void initialize(std::string path) = 0;
 
-	virtual void update(float deltaTime, Input* input) = 0;
+	virtual void update(float deltaTime, Input* input, Audio* audio) = 0;
 
 	virtual void render(Graphics* graphics) = 0;
 

@@ -1,7 +1,10 @@
 #include "statemanager.h"
 
+#include "../Core/enginecore.h"
+
 #include "igamestate.h"
 #include "../Core/graphics.h"
+#include "../Message/messagebus.h"
 #include "../Message/mailbox.h"
 #include "../Message/mailaddress.h"
 #include "../Message/message.h"
@@ -13,8 +16,8 @@
 
 #include <iostream>
 
-StateManager::StateManager(IGameState* parentState, IStateFactory* stateFactory, std::string name)
-	: BaseState(parentState, name), stateFactory(stateFactory)
+StateManager::StateManager(std::string name, IGameState* parentState, EngineCore* engineCore, IStateFactory* stateFactory)
+	: BaseState(name, parentState, engineCore), stateFactory(stateFactory)
 {
 mailBox = std::make_unique<MailBox>();
 mailAddress = mailBox->getAddress();
@@ -154,7 +157,7 @@ bool StateManager::pushState(std::string name)
 	else
 	{
 		// Create a new state of that name
-		std::unique_ptr<IGameState> state = stateFactory->createState(name, this);
+		std::unique_ptr<IGameState> state = stateFactory->createState(name, this, engineCore);
 
 		if (state)
 		{
@@ -201,19 +204,19 @@ bool StateManager::popState()
 }
 
 
-void StateManager::update(float deltaTime, Input* input)
+void StateManager::update(float deltaTime, Input* input, Audio* audio)
 {
-	// Check messages to determine if state needs to change
-	// Send messages if parent state needs to change
+	
 
 
 	// Update the top state
 	if (!stateStack.empty())
 	{
-		stateStack.back()->update(deltaTime, input);
+		stateStack.back()->update(deltaTime, input, audio);
 	}
 
-
+	// Check messages to determine if state needs to change
+	// Send messages if parent state needs to change
 	if (mailBox)
 	{
 		if (!mailBox->isEmpty())
@@ -225,10 +228,15 @@ void StateManager::update(float deltaTime, Input* input)
 				std::cout << "message\n";
 				handleMessage(message);
 			}
+			else if (message->getType() == MsgType::ExitApplication)
+			{
+				// Pass application close event to engine core
+				engineCore->getMessageBus()->postMessage(message);
+			}
 		}
 	}
 
-
+	// Perform any needed state changes
 	updateStack();
 
 	

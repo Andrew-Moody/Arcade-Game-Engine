@@ -7,11 +7,15 @@
 #include "istatefactory.h"
 
 class IGameState;
+class EngineCore;
 
 class StateFactory : public IStateFactory
 {
-
+	// levelName, pair<levelType, levelPath>
 	std::map<std::string, std::pair<std::string, std::string>> pathMap;
+
+	// LevelType, create method
+	std::map<std::string, CreateLevelMethod> createLevelMap;
 
 public:
 
@@ -19,11 +23,12 @@ public:
 
 	~StateFactory();
 
-	// Create a new state
-	//std::unique_ptr<IGameState> createState(int type, IGameState* parentState) override;
-
-	std::unique_ptr<IGameState> createState(std::string name, IGameState* parentState) override;
+	std::unique_ptr<IGameState> createState(std::string name, IGameState* parentState, EngineCore* engineCore) override;
 
 	void loadStatePaths(std::string path);
+
+	virtual std::unique_ptr<IGameState> createLevel(std::string levelType, std::string levelName, IGameState* parentState, EngineCore* engineCore) override;
+
+	virtual void registerLevel(std::string levelType, CreateLevelMethod createLevelMethod) override;
 
 };

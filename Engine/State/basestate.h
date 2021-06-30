@@ -6,19 +6,21 @@
 #include <string>
 
 class Message;
+class EngineCore;
 
 class BaseState : public IGameState
 {
 
 protected:
 	IGameState* parentState;
+	EngineCore* engineCore;
 
 	std::string name;
 	bool removeOnExit;
 
 public:
 
-	BaseState(IGameState* state, std::string name);
+	BaseState(std::string name, IGameState* parentState, EngineCore* engineCore);
 	virtual ~BaseState();
 
 	// Post a message to the parent mailbox

@@ -94,3 +94,33 @@ public:
 	MSGEntityDestroyed(int EntityID) : Message(MsgType::EntityDestroyed), ID(EntityID) {}
 
 };
+
+
+class MSGPlayMusic : public Message
+{
+public:
+	std::string songName;
+	int repeat;
+
+	MSGPlayMusic(std::string songName, int repeat = 0) : Message(MsgType::PlayMusic), songName(songName), repeat(repeat) {}
+};
+
+
+class MSGPlaySound : public Message
+{
+public:
+	std::string songName;
+	int repeat;
+	int channel;
+
+	MSGPlaySound(std::string songName, int repeat = 0, int channel = -1) : Message(MsgType::PlaySound), songName(songName), repeat(repeat), channel(channel) {}
+};
+
+
+class MSGExitApplication : public Message
+{
+public:
+
+	MSGExitApplication() : Message(MsgType::ExitApplication) {}
+
+};

@@ -13,19 +13,19 @@
 
 #include "../Core/filehandle.h"
 
-MenuState::MenuState(IGameState* parentState, IStateFactory* stateFactory, std::string name)
-	: StateManager(parentState, stateFactory, name)
+MenuState::MenuState(std::string name, IGameState* parentState, EngineCore* engineCore, IStateFactory* stateFactory)
+	: StateManager(name, parentState, engineCore, stateFactory)
 {
 	
 }
 
 
-void MenuState::update(float deltaTime, Input* input)
+void MenuState::update(float deltaTime, Input* input, Audio* audio)
 {
 
 	// Need to make state changes happen at more specific time
 
-	StateManager::update(deltaTime, input);
+	StateManager::update(deltaTime, input, audio);
 
 	box->update(input);
 
@@ -115,7 +115,7 @@ void MenuState::initialize(std::string path)
 			
 			std::shared_ptr<Message> message = nullptr;
 
-			if (MsgType.size() > 0)
+			if (!MsgType.empty())
 			{
 				if (MsgType == "ChangeState")
 				{
@@ -132,6 +132,10 @@ void MenuState::initialize(std::string path)
 				else if (MsgType == "PopState")
 				{
 					message = std::make_shared<MSGStateChange>("", StateChangeType::PopState);
+				}
+				else if (MsgType == "ExitApplication")
+				{
+					message = std::make_shared<MSGExitApplication>();
 				}
 			}
 

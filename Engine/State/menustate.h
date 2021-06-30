@@ -4,7 +4,9 @@
 #include <memory>
 #include <string>
 
+class EngineCore;
 class Input;
+class Audio;
 class Graphics;
 class MenuBox;
 
@@ -15,9 +17,9 @@ class MenuState : public StateManager
 
 public:
 
-	MenuState(IGameState* parentState, IStateFactory* stateFactory, std::string name);
+	MenuState(std::string name, IGameState* parentState, EngineCore* engineCore, IStateFactory* stateFactory);
 
-	void update(float deltaTime, Input* input) override;
+	void update(float deltaTime, Input* input, Audio* audio) override;
 
 	void render(Graphics* graphics) override;
 	
