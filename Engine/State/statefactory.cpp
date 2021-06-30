@@ -6,7 +6,7 @@
 #include "../Menu/menubox.h"
 
 
-#include "../../Game/levelstate.h"
+#include "levelstate.h"
 
 #include "../Message/mailaddress.h"
 #include "../Message/messagebus.h"
