@@ -1,7 +1,9 @@
 #include "levelstate.h"
 
+#include "../Engine/Core/enginecore.h"
 #include "../Engine/Core/graphics.h"
 #include "../Engine/Core/input.h"
+#include "../Engine/Core/audio.h"
 #include "../Engine/Entity/entity.h"
 #include "../Engine/Entity/sprite.h"
 #include "../Engine/Entity/physicsobject.h"
@@ -28,33 +30,19 @@
 
 #include "Components/usercomponentregistry.h"
 
-LevelState::LevelState(IGameState* parentState, IStateFactory* stateFactory, std::string name)
-	: BaseState(parentState, name)
+LevelState::LevelState(std::string name, IGameState* parentState, EngineCore* engineCore)
+	: BaseState(name, parentState, engineCore)
 {
 	tileManager = nullptr;
 	entFactory = nullptr;
 	spriteFactory = nullptr;
 	componentFactory = std::make_unique<ComponentFactory>();
-	
+
 	User::RegisterUserComponents(componentFactory.get());
 
 	entityMessageBus = std::make_unique<MessageBus>();
 	mailBox = std::make_unique<MailBox>();
 	mailBox->setPublisher(entityMessageBus.get());
-
-	score = 0;
-
-	lives = 3;
-
-	dead = false;
-
-	gameOver = false;
-
-	frames = 0;
-	timeSince = 0;
-	fps = 0;
-
-	nextLevel = 7;
 
 	playerId = 0;
 }
@@ -145,54 +133,22 @@ void LevelState::initialize(std::string path)
 }
 
 
-void LevelState::update(float deltaTime, Input* input)
+void LevelState::update(float deltaTime, Input* input, Audio* audio)
 {
 
-	frames++;
-	timeSince += deltaTime;
-
-	if (timeSince >= 1000.0f)
-	{
-		timeSince -= 1000.0f;
-		fps = frames;
-		frames = 0;
-	}
-
-	
-
 	handleInput(input);
-
+	
 	// Dispatch messages to subscribers
 	entityMessageBus->dispatchAll();
-	checkMail();
+	//checkMail(audio);
 
 	// Update game state
 	updatePhysics(deltaTime);
-
 
 	checkCollision();
 
 	updateAI(deltaTime);
 
-	if (gameOver)
-	{
-		std::shared_ptr<Message> msg = std::make_shared<MSGStateChange>("GameOver", StateChangeType::ChangeState);
-
-		if (parentState)
-		{
-			parentState->handleMessage(msg);
-		}
-	}
-
-	if (entities.size() <= 1)
-	{
-		std::shared_ptr<Message> msg = std::make_shared<MSGStateChange>(nextLevel, StateChangeType::ChangeState);
-
-		if (parentState)
-		{
-			parentState->handleMessage(msg);
-		}
-	}
 }
 
 
@@ -211,17 +167,7 @@ void LevelState::render(Graphics* graphics)
 	}
 
 
-
-	SDL_Color color = { 100,0,0 };
-
-	graphics->drawText("Lives " + std::to_string(lives), color, 0,0,1);
-
-
-	graphics->drawText("Score " + std::to_string(score), color, 475, 0, 1);
-
-	graphics->drawText("FPS " + std::to_string(fps), color, 475, 700, 1);
-	
-
+	// Draw HUD
 }
 
 
@@ -310,6 +256,15 @@ void LevelState::updatePhysics(float deltaTime)
 }
 
 
+void LevelState::updateAI(float deltaTime)
+{
+	for (auto it = entities.begin(); it != entities.end(); ++it)
+	{
+		it->second->updateAI(deltaTime);
+	}
+}
+
+
 void LevelState::checkCollision()
 {
 
@@ -346,128 +301,6 @@ void LevelState::checkCollision()
 	}
 }
 
-
-void LevelState::handleCollision(int entityID_A, int entityID_B)
-{
-	if (entityID_A == playerId || entityID_B == playerId)
-	{
-		int enemy;
-		if (entityID_A == playerId)
-		{
-			enemy = entityID_B;
-		}
-		else
-		{
-			enemy = entityID_A;
-		}
-
-		auto e_iter = entities.find(enemy);
-		if (e_iter != entities.end())
-		{
-			if (!dead)
-			{
-				lives--;
-
-				std::cout << "Hit!\n";
-
-				auto iter = entities.find(playerId);
-				if (iter != entities.end())
-				{
-					iter->second->getPhysObjP()->setPosition(0, 0);
-				}
-
-				if (lives < 1)
-				{
-					std::cout << "Game over\n";
-					gameOver = true;
-				}
-				dead = true;
-			}
-
-		}
-	}
-	else
-	{
-		auto p_iter = projectiles.find(entityID_B);
-		if (p_iter != projectiles.end())
-		{
-			projectiles.erase(p_iter);
-			std::cout << "erased projectile\n";
-
-			auto e_iter = entities.find(entityID_A);
-			if (e_iter != entities.end())
-			{
-				entityMessageBus->postMessage(std::make_unique<MSGEntityDestroyed>(e_iter->first));
-				entities.erase(e_iter);
-				std::cout << "erased entity\n";
-
-				score++;
-			}
-		}
-	}
-}
-
-void LevelState::updateAI(float deltaTime)
-{
-	for (auto it = entities.begin(); it != entities.end(); ++it)
-	{
-		it->second->updateAI(deltaTime);
-	}
-}
-
-
-void LevelState::checkMail()
-{
-	dead = false;
-
-	if (mailBox)
-	{
-		while (!mailBox->isEmpty())
-		{
-			MessageSPtr message = mailBox->getMessage();
-
-			switch (message->getType())
-			{
-				case MsgType::StateChange :
-				{
-					if (parentState)
-					{
-						parentState->handleMessage(message);
-					}
-					break;
-				}
-
-				case MsgType::LaunchProjectile :
-				{
-					if (projectiles.size() < 4)
-					{
-						std::shared_ptr<MSGLaunchProjectile> msg = std::static_pointer_cast<MSGLaunchProjectile>(message);
-						createProjectile("Projectile", msg->x, msg->y, msg->velX, msg->velY);
-					}
-
-					break;
-				}
-
-				case MsgType::Collision :
-				{
-					std::shared_ptr<MSGCollision> msg = std::static_pointer_cast<MSGCollision>(message);
-					handleCollision(msg->ID_A, msg->ID_B);
-					break;
-				}
-
-				case MsgType::Control :
-				{
-					break;
-				}
-
-				default :
-				{
-					break;
-				}
-			}
-		}
-	}
-}
 
 Entity* LevelState::createEntity(std::string entityName)
 {

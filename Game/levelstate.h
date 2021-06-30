@@ -6,8 +6,10 @@
 #include <map>
 #include <string>
 
+class EngineCore;
 class TileManager;
 class Input;
+class Audio;
 class Graphics;
 
 class MailBox;
@@ -28,6 +30,9 @@ class LevelState : public BaseState
 	std::unique_ptr<IEntityFactory> entFactory;
 	std::unique_ptr<ISpriteFactory> spriteFactory;
 	std::unique_ptr<IComponentFactory> componentFactory;
+
+protected:
+
 	std::unique_ptr<MessageBus> entityMessageBus;
 
 	std::unique_ptr<MailBox> mailBox;
@@ -35,26 +40,15 @@ class LevelState : public BaseState
 	// Tilemap
 	std::unique_ptr<TileManager> tileManager;
 
+
+
 	// Map of game objects keyed by id
 	std::map<int, std::unique_ptr<Entity>> entities;
 	std::map<int, std::unique_ptr<Entity>> projectiles;
 
 	int playerId;
 
-	int score;
-
-	int lives;
-
-	bool dead;
-
-	bool gameOver;
-
-	int frames;
-	int fps;
-	float timeSince;
-
 	std::string nextLevel;
-
 
 	std::map<int, std::pair<int, int>> entityControls;
 	std::map<int, std::pair<int, int>> stateControls;
@@ -62,17 +56,15 @@ class LevelState : public BaseState
 
 public:
 
-	LevelState(IGameState* parentState, IStateFactory* stateFactory, std::string name);
+	LevelState(std::string name, IGameState* parentState, EngineCore* engineCore);
 
-	//void initFromFile(std::string path);
+	virtual void initialize(std::string path) override;
 
-	void initialize(std::string path) override;
+	virtual void update(float deltaTime, Input* input, Audio* audio) override;
 
-	void update(float deltaTime, Input* input) override;
+	virtual void render(Graphics* graphics) override;
 
-	void render(Graphics* graphics) override;
-
-	void handleMessage(std::shared_ptr<Message> message) override {}
+	virtual void handleMessage(std::shared_ptr<Message> message) override {}
 
 
 	void attachMessageBus(std::unique_ptr<MessageBus>& publisher);
@@ -81,23 +73,21 @@ public:
 
 	void attachSpriteFactory(std::unique_ptr<ISpriteFactory>& sfactory);
 
-	void setNextLevel(int level) { nextLevel = level; }
-
 	TileManager* getTileManager() { return tileManager.get(); }
 
-private:
+protected:
 	// Helper functions to carry out update
 	void handleInput(Input* input);
 
 	void updatePhysics(float deltaTime);
 
-	void checkCollision();
-
-	void handleCollision(int entityID_A, int entityID_B);
-
 	void updateAI(float deltaTime);
 
-	void checkMail();
+	void checkCollision();
+
+	//void handleCollision(int entityID_A, int entityID_B);
+
+	//void checkMail(Audio* audio);
 
 	// Create a new entity using the entity factory
 	Entity* createEntity(std::string entityName);

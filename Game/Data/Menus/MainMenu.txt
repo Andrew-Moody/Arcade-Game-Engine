@@ -5,4 +5,4 @@ MakeBox 0 48 12 128 128 400 500 MainMenu 1
 #MakeButton position srcX srcY borderWidth x y w h Contents Scale MsgType MsgArgs...
 MakeButton Top 0 48 24 174 200 300 100 TestGame 1 ChangeState TestGame
 MakeButton Middle 0 48 24 174 350 300 100 Options 1
-MakeButton Bottom 0 48 24 174 500 300 100 Exit 1
+MakeButton Bottom 0 48 24 174 500 300 100 Exit 1 ExitApplication

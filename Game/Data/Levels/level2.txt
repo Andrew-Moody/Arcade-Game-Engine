@@ -9,6 +9,8 @@ Spawn YellowGhost 336 312
 SubscribeMail 0
 SubscribeMail 3
 SubscribeMail 4
+SubscribeMail 6
+SubscribeMail 7
 AddEntControl 119 0 1
 AddEntControl 97 0 2
 AddEntControl 115 0 3

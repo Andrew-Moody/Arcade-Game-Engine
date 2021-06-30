@@ -1,14 +1,12 @@
 #include <SDL.h>
 #include <iostream>
+#include <string>
 
 #include "../Engine/Core/enginecore.h"
-
-#include <string>
 
 
 int main( int argc, char* args[])
 {
-
 
 	//Create a engineCore
 	std::unique_ptr<EngineCore> gameCore = std::make_unique<EngineCore>();
@@ -25,5 +23,6 @@ int main( int argc, char* args[])
 	{
 		done = gameCore->run();
 	}
+
 	return 0;
 }

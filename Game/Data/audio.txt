@@ -1,0 +1,5 @@
+LoadSong theme Assets/pacmansongrecording.wav
+LoadSong background Assets/background.wav
+LoadSound death Assets/PacmanDeath.wav
+LoadSound fireball Assets/fireball.wav
+LoadSound coin Assets/coin.wav
