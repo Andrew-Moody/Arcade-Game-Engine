@@ -1,34 +1,34 @@
 #include "levelstate.h"
 
-#include "../Engine/Core/enginecore.h"
-#include "../Engine/Core/graphics.h"
-#include "../Engine/Core/input.h"
-#include "../Engine/Core/audio.h"
-#include "../Engine/Entity/entity.h"
-#include "../Engine/Entity/sprite.h"
-#include "../Engine/Entity/physicsobject.h"
-#include "../Engine/Tiling/tilemanager.h"
-#include "../Engine/Message/messagebus.h"
-#include "../Engine/Message/mailbox.h"
-#include "../Engine/Message/messages.h"
+#include "../Core/enginecore.h"
+#include "../Core/graphics.h"
+#include "../Core/input.h"
+#include "../Core/audio.h"
+#include "../Entity/entity.h"
+#include "../Entity/sprite.h"
+#include "../Entity/physicsobject.h"
+#include "../Tiling/tilemanager.h"
+#include "../Message/messagebus.h"
+#include "../Message/mailbox.h"
+#include "../Message/messages.h"
 
 
-#include "../Engine/Entity/entityfactory.h"
-#include "../Engine/Entity/spritefactory.h"
+#include "../Entity/entityfactory.h"
+#include "../Entity/spritefactory.h"
 
-#include "../Engine/Core/physics.h"
+#include "../Core/physics.h"
 
 #include <memory>
 #include <string>
 #include <iostream>
 
-#include "../Engine/State/istatefactory.h"
+#include "istatefactory.h"
 
-#include "../Engine/Core/filehandle.h"
+#include "../Core/filehandle.h"
 
-#include "../Engine/Entity/componentfactory.h"
+#include "../Entity/componentfactory.h"
 
-#include "Components/usercomponentregistry.h"
+#include "../../Game/Components/usercomponentregistry.h"
 
 LevelState::LevelState(std::string name, IGameState* parentState, EngineCore* engineCore)
 	: BaseState(name, parentState, engineCore)
