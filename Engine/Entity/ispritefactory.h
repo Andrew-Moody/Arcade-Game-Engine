@@ -18,7 +18,4 @@ public:
 
 	virtual void loadTemplates(std::string filePath) = 0;
 
-private:
-
-	virtual std::unique_ptr<SpriteTemplate> createSpriteTemplate(FileHandle& file) = 0;
 };

@@ -1,10 +1,6 @@
 
 #include "entityfactory.h"
 
-
-//#include "enemyai.h"
-//#include "ghostai.h"
-
 #include "../Core/filehandle.h"
 
 #include "entity.h"
@@ -24,10 +20,12 @@
 #include <iostream>
 #include <memory>
 
+#include "componentfactory.h"
+
 EntityFactory::EntityFactory(ISpriteFactory* spriteFac, MessageBus* messageBus, IComponentFactory* componentFactory)
 	: IEntityFactory(), spriteFactory(spriteFac), messageBus(messageBus), componentFactory(componentFactory)
 {
-
+	
 }
 
 
@@ -49,7 +47,7 @@ std::unique_ptr<Entity> EntityFactory::createEntity(std::string entityName)
 	}
 
 
-	// Construct the sprite from the template
+	// Construct the entity from the template
 
 	std::unique_ptr<Entity> entity = std::make_unique<Entity>();
 
@@ -71,13 +69,6 @@ std::unique_ptr<Entity> EntityFactory::createEntity(std::string entityName)
 
 	std::unique_ptr<IComponent> component = componentFactory->createComponent(entityTemp->behaviorName, entity.get());
 	entity->addAI(component);
-
-
-	
-
-	/*entity->updateAI(0.00f);
-	entity->updatePhys(0.00f);
-	entity->updateSprite(0.00f);*/
 
 	return entity;
 

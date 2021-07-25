@@ -2,6 +2,12 @@
 
 #include <SDL.h>
 
+#include <string>
+#include <map>
+
+
+class Animation;
+
 struct ImageProperties
 {
 	SDL_Rect clip; // source
@@ -10,7 +16,6 @@ struct ImageProperties
 	SDL_RendererFlip flip; // enum to specify flip direction
 	double angle;   // rotation angle
 };
-
 
 
 class Sprite
@@ -29,6 +34,9 @@ class Sprite
 	int clipXOffset; // added to remember the starting position of a sprite sequence
 	bool paused;
 	bool loopAnimation;
+	bool finished;
+
+	std::map<std::string, Animation> animationMap;
 
 public:
 
@@ -45,6 +53,10 @@ public:
 	
 	
 	//Animation
+
+	void playAnimation(std::string animation, bool loop);
+
+	void addAnimation(Animation animation);
 
 	//Amount of time between frame changes in milliseconds
 	void setFrameDelay(float delay);
@@ -64,7 +76,7 @@ public:
 	//Pause or resume the current animation
 	void setPause(bool pause);
 
-	//Select wether the animation is allowed to loop
+	//Select whether the animation is allowed to loop
 	void setLoop(bool loop);
 
 
@@ -88,7 +100,6 @@ public:
 
 	void setHScale(float scale);
 
-	//looks like sdl uses degrees but will have to check
 	void setDegrees(double deg); 
 
 	void setFlip(SDL_RendererFlip flip) { imageProperties.flip = flip; }
@@ -98,6 +109,8 @@ public:
 	const ImageProperties& getImageProperties() const;
 
 	bool isPaused() const;
+
+	bool isFinished() const;
 
 private:
 	void setRect(); //set properties based on current frame. Used by update()

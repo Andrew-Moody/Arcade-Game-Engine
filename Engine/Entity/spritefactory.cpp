@@ -22,10 +22,19 @@ std::unique_ptr<Sprite> SpriteFactory::createSprite(std::string spriteName)
 
 		sprite->setClip(spriteTemp->clip_x, spriteTemp->clip_y, spriteTemp->clip_w, spriteTemp->clip_h);
 		sprite->setScale(spriteTemp->scale);
-		sprite->setStartEndFrames(spriteTemp->startFrame, spriteTemp->endFrame);
-		sprite->setFrameDelay(spriteTemp->frameDelay);
-		sprite->startAnimation(spriteTemp->start);
 
+		if (!spriteTemp->animations.empty())
+		{
+			for (int i = 0; i < spriteTemp->animations.size(); ++i)
+			{
+				sprite->addAnimation(spriteTemp->animations[i]);
+			}
+
+			sprite->playAnimation(spriteTemp->animations[0].name, true);
+
+		}
+
+		//sprite->addAnimation()
 	}
 	else
 	{
@@ -48,7 +57,16 @@ void SpriteFactory::loadTemplates(std::string filePath)
 		{
 			while (!file.eof())
 			{
-				createSpriteTemplate(file);
+				std::string command = file.getNextString();
+
+				if (command == "CreateSprite")
+				{
+					createSpriteTemplate(file);
+				}
+				else if (command == "CreateAnimation")
+				{
+					addAnimation(file);
+				}
 			}
 		}
 	}
@@ -56,7 +74,7 @@ void SpriteFactory::loadTemplates(std::string filePath)
 
 
 
-std::unique_ptr<SpriteTemplate> SpriteFactory::createSpriteTemplate(FileHandle& file)
+void SpriteFactory::createSpriteTemplate(FileHandle& file)
 {
 	std::unique_ptr<SpriteTemplate> spriteTemplate = std::make_unique<SpriteTemplate>();
 
@@ -67,26 +85,7 @@ std::unique_ptr<SpriteTemplate> SpriteFactory::createSpriteTemplate(FileHandle& 
 	spriteTemplate->clip_w = file.getNextInt();
 	spriteTemplate->clip_h = file.getNextInt();
 	spriteTemplate->scale = file.getNextInt();
-	spriteTemplate->startFrame = file.getNextInt();
-	spriteTemplate->endFrame = file.getNextInt();
-	spriteTemplate->frameDelay = file.getNextInt();
 	
-
-	std::string startString = file.getNextString();
-
-	if (startString == "true")
-	{
-		spriteTemplate->start = true;
-	}
-	else if (startString == "false")
-	{
-		spriteTemplate->start = false;
-	}
-	else
-	{
-		std::cout << "Error Loading Sprite Templates: " << spriteTemplate->name << " startBool must be true or false\n";
-	}
-
 
 	if (templateMap.find(spriteTemplate->name) == templateMap.end())
 	{
@@ -96,8 +95,23 @@ std::unique_ptr<SpriteTemplate> SpriteFactory::createSpriteTemplate(FileHandle& 
 	{
 		std::cout << "Error Loading Sprite Templates: " << spriteTemplate->name << " has already been loaded\n";
 	}
+}
 
 
-	return spriteTemplate;
-	
+void SpriteFactory::addAnimation(FileHandle& file)
+{
+	std::string spriteName = file.getNextString();
+
+	auto spriteTemplate = templateMap.find(spriteName);
+	if (spriteTemplate != templateMap.end())
+	{
+		std::string animationName = file.getNextString();
+		int startFrame = file.getNextInt();
+		int endFrame = file.getNextInt();
+		float frameDelay = (float)file.getNextInt();
+
+		Animation animation = { animationName, startFrame, endFrame, frameDelay };
+
+		spriteTemplate->second->animations.push_back(animation);
+	}
 }

@@ -2,9 +2,15 @@
 
 #include <iostream>
 
-ComponentFactory::ComponentFactory()
-{
+#include "../../Game/Test/componentfsm.h"
 
+#include "../../Game/Test/componentfsmfactory.h"
+#include "baseai.h"
+
+ComponentFactory::ComponentFactory(MessageBus* messageBus)
+	: messageBus(messageBus)
+{
+	fsmFactory = std::make_unique<ComponentFSMFactory>();
 }
 
 ComponentFactory::~ComponentFactory()
@@ -18,7 +24,19 @@ std::unique_ptr<IComponent> ComponentFactory::createComponent(std::string compon
 	auto iter = createCompMap.find(componentName);
 	if (iter != createCompMap.end())
 	{
-		return iter->second(parent);
+		// Construct and return a new component
+
+		std::unique_ptr<IComponent> component = iter->second(parent, messageBus);
+
+		std::unique_ptr<ComponentFSM> fsm = fsmFactory->createFSM(componentName);
+
+		if (fsm)
+		{
+			static_cast<BaseAI*>(component.get())->addFSM(std::move(fsm));
+		}
+
+		return component;
+		
 	}
 	else
 	{
@@ -41,3 +59,8 @@ void ComponentFactory::registerComponent(std::string componentName, CreateCompMe
 	}
 }
 
+
+void ComponentFactory::initializeFSMFactory(std::string filePath)
+{
+	fsmFactory->initialize(filePath);
+}

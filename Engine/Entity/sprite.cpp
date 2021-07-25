@@ -2,6 +2,8 @@
 #include <SDL.h>
 
 
+#include "animation.h"
+
 Sprite::Sprite()
 {
 	imageProperties.clip = { 0, 0, 16, 16 };
@@ -20,7 +22,9 @@ Sprite::Sprite()
 	clipXOffset = 0;
 	paused = true;
 	loopAnimation = false;
+	finished = true;
 }
+
 
 Sprite::~Sprite() {}
 
@@ -36,8 +40,13 @@ void Sprite::update(float frameTime)
 		if (!paused)
 		{
 			currentFrame++;
+
+			if (currentFrame == endFrame && !loopAnimation)
+			{
+				finished = true;
+				paused = true;
+			}
 		}
-		
 	}
 
 	setRect();
@@ -151,7 +160,42 @@ const ImageProperties& Sprite::getImageProperties() const
 	return imageProperties; 
 }
 
+
 bool Sprite::isPaused() const 
 { 
 	return paused; 
+}
+
+bool Sprite::isFinished() const
+{
+	return finished;
+}
+
+void Sprite::playAnimation(std::string animation, bool loop)
+{
+	auto iter = animationMap.find(animation);
+	if (iter != animationMap.end())
+	{
+		startFrame = iter->second.startFrame;
+		endFrame = iter->second.endFrame;
+		frameDelay = iter->second.frameDelay;
+
+		currentFrame = startFrame;
+		loopAnimation = loop;
+		paused = false;
+		finished = false;
+	}
+}
+
+
+void Sprite::addAnimation(Animation animation)
+{
+	if (animationMap.find(animation.name) == animationMap.end())
+	{
+		animationMap[animation.name] = animation;
+	}
+	else
+	{
+		// An animation with that name already exists
+	}
 }

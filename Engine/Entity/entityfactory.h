@@ -13,6 +13,7 @@ class IComponentFactory;
 struct EntityTemplate;
 class FileHandle;
 
+
 class EntityFactory : public IEntityFactory
 {	
 
@@ -26,6 +27,7 @@ class EntityFactory : public IEntityFactory
 	IComponentFactory* componentFactory;
 
 	std::map<std::string, std::unique_ptr<EntityTemplate>> templateMap;
+
 
 public:
 

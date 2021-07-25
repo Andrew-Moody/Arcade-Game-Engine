@@ -23,6 +23,8 @@ public:
 
 private:
 
-	std::unique_ptr<SpriteTemplate> createSpriteTemplate(FileHandle& file);
+	void createSpriteTemplate(FileHandle& file);
+
+	void addAnimation(FileHandle& file);
 
 };
