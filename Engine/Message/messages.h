@@ -117,10 +117,69 @@ public:
 };
 
 
+class MSGStopMusic : public Message
+{
+public:
+	
+	MSGStopMusic() : Message(MsgType::StopMusic) {}
+};
+
+
+class MSGStopSound : public Message
+{
+public:
+	int channel;
+
+	MSGStopSound(int channel) : Message(MsgType::StopSound), channel(channel) {}
+};
+
+
+class MSGResetPosition : public Message
+{
+public:
+
+	MSGResetPosition() : Message(MsgType::ResetPosition) {}
+};
+
+
 class MSGExitApplication : public Message
 {
 public:
 
 	MSGExitApplication() : Message(MsgType::ExitApplication) {}
 
+};
+
+
+class MSGKeyPress : public Message
+{
+public:
+	int key;
+
+	MSGKeyPress(int key) : Message(MsgType::KeyPress), key(key) {}
+};
+
+
+class MSGKeyRelease : public Message
+{
+public:
+	int key;
+
+	MSGKeyRelease(int key) : Message(MsgType::KeyRelease), key(key) {}
+};
+
+
+class MSGPlayerDeath : public Message
+{
+public:
+
+	MSGPlayerDeath() : Message(MsgType::PlayerDeath) {}
+};
+
+
+class MSGGameEvent : public Message
+{
+public:
+	std::string eventName;
+	MSGGameEvent(std::string eventName) : Message(MsgType::GameEvent), eventName(eventName) {}
 };

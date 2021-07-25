@@ -12,5 +12,12 @@ enum class MsgType : int
 	EntityDestroyed,
 	PlayMusic,
 	PlaySound,
+	StopMusic,
+	StopSound,
+	ResetPosition,
 	ExitApplication,
+	KeyPress,
+	KeyRelease,
+	PlayerDeath,
+	GameEvent,
 };
