@@ -1,12 +1,9 @@
 #include "statefactory.h"
 
 #include "statemanager.h"
-
 #include "menustate.h"
-#include "../Menu/menubox.h"
-
-
 #include "levelstate.h"
+#include "../Menu/menubox.h"
 
 #include "../Message/mailaddress.h"
 #include "../Message/messagebus.h"
@@ -17,11 +14,9 @@
 
 #include <iostream>
 
-#include "../../Game/Data/Levels/userlevelregistry.h"
-
 StateFactory::StateFactory()
 {
-	User::RegisterUserLevels(this);
+
 }
 
 
@@ -116,7 +111,21 @@ std::unique_ptr<IGameState> StateFactory::createLevel(std::string levelType, std
 	auto iter = createLevelMap.find(levelType);
 	if (iter != createLevelMap.end())
 	{
-		return iter->second(levelName, parentState, engineCore);
+
+		std::unique_ptr<IGameState> state = iter->second(levelName, parentState, engineCore);
+
+		LevelState* level = static_cast<LevelState*>(state.get());
+
+		if (regCompFunc)
+		{
+			level->initializeComponentFactory(regCompFunc);
+		}
+		else
+		{
+			std::cout << "The user component registration function has not been set\n";
+		}
+
+		return state;
 	}
 	else
 	{
@@ -142,3 +151,7 @@ void StateFactory::registerLevel(std::string levelType, CreateLevelMethod create
 }
 
 
+void StateFactory::setRegCompFunc(RegisterUserComponentsFunction regCompFunc)
+{
+	this->regCompFunc = regCompFunc;
+}

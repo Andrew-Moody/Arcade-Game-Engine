@@ -28,7 +28,6 @@
 
 #include "../Entity/componentfactory.h"
 
-#include "../../Game/Components/usercomponentregistry.h"
 
 LevelState::LevelState(std::string name, IGameState* parentState, EngineCore* engineCore)
 	: BaseState(name, parentState, engineCore)
@@ -36,13 +35,10 @@ LevelState::LevelState(std::string name, IGameState* parentState, EngineCore* en
 	tileManager = nullptr;
 	entFactory = nullptr;
 	spriteFactory = nullptr;
-	componentFactory = std::make_unique<ComponentFactory>();
+	componentFactory = std::make_unique<ComponentFactory>(engineCore->getMessageBus());
 
-	User::RegisterUserComponents(componentFactory.get());
-
-	entityMessageBus = std::make_unique<MessageBus>();
 	mailBox = std::make_unique<MailBox>();
-	mailBox->setPublisher(entityMessageBus.get());
+	mailBox->setPublisher(engineCore->getMessageBus());
 
 	playerId = 0;
 }
@@ -82,18 +78,23 @@ void LevelState::initialize(std::string path)
 
 			std::string operand = initFile.getNextString();
 
-			entFactory = std::make_unique<EntityFactory>(spriteFactory.get(), entityMessageBus.get(), componentFactory.get());
+			entFactory = std::make_unique<EntityFactory>(spriteFactory.get(), engineCore->getMessageBus(), componentFactory.get());
 
 			entFactory->loadEntityTemplates(operand);
+		}
+		else if (command == "LoadComponentFactory")
+		{
+			std::string operand = initFile.getNextString();
+			componentFactory->initializeFSMFactory(operand);
 		}
 		else if (command == "Spawn")
 		{
 			std::string entityName = initFile.getNextString();
 
-			int x = initFile.getNextOptionalInt();
-			int y = initFile.getNextOptionalInt();
-			int vx = initFile.getNextOptionalInt();
-			int vy = initFile.getNextOptionalInt();
+			float x = (float)initFile.getNextOptionalInt();
+			float y = (float)initFile.getNextOptionalInt();
+			float vx = (float)initFile.getNextOptionalInt();
+			float vy = (float)initFile.getNextOptionalInt();
 
 			Entity* entity = createEntity(entityName, x, y, vx, vy);
 		}
@@ -138,8 +139,6 @@ void LevelState::update(float deltaTime, Input* input, Audio* audio)
 
 	handleInput(input);
 	
-	// Dispatch messages to subscribers
-	entityMessageBus->dispatchAll();
 	//checkMail(audio);
 
 	// Update game state
@@ -187,7 +186,7 @@ void LevelState::handleInput(Input* input)
 			if ((CtrlCode)controlCode != CtrlCode::Null)
 			{
 				std::shared_ptr<Message> msg = std::make_shared<MSGControl>((CtrlCode)controlCode);
-				entityMessageBus->postMessage(msg);
+				mailBox->postMessage(msg);
 			}
 		}
 		if (input->isKeyDown(iter->first))
@@ -198,7 +197,7 @@ void LevelState::handleInput(Input* input)
 			if ((CtrlCode)controlCode != CtrlCode::Null)
 			{
 				std::shared_ptr<Message> msg = std::make_shared<MSGControl>((CtrlCode)controlCode);
-				entityMessageBus->postMessage(msg);
+				mailBox->postMessage(msg);
 			}
 		}
 	}
@@ -279,15 +278,15 @@ void LevelState::checkCollision()
 			{
 				if (entity->first == playerId)
 				{
-					std::cout << "ent" << ent->second->getPhysObjP()->getX() << " ";
+					//std::cout << "ent" << ent->second->getPhysObjP()->getX() << " ";
 				}
 
 				if (ent->first == playerId)
 				{
-					std::cout << "entity" << entity->second->getPhysObjP()->getX() << "\n";
+					//std::cout << "entity" << entity->second->getPhysObjP()->getX() << "\n";
 				}
 
-				entityMessageBus->postMessage(std::make_shared<MSGCollision>(entity->second->id, ent->second->id));
+				mailBox->postMessage(std::make_shared<MSGCollision>(entity->second->id, ent->second->id));
 			}
 		}
 
@@ -295,7 +294,7 @@ void LevelState::checkCollision()
 		{
 			if (Physics::checkCollision(entity->second.get(), projectile->second.get()))
 			{
-				entityMessageBus->postMessage(std::make_shared<MSGCollision>(entity->second->id, projectile->second->id));
+				mailBox->postMessage(std::make_shared<MSGCollision>(entity->second->id, projectile->second->id));
 			}
 		}
 	}
@@ -395,7 +394,7 @@ std::unique_ptr<Sprite> LevelState::createSprite(std::string spriteName)
 
 void LevelState::attachMessageBus(std::unique_ptr<MessageBus>& MessageBus)
 {
-	entityMessageBus = std::move(MessageBus);
+	//entityMessageBus = std::move(MessageBus);
 }
 
 void LevelState::attachEntityFactory(std::unique_ptr<IEntityFactory>& efactory)
@@ -406,4 +405,9 @@ void LevelState::attachEntityFactory(std::unique_ptr<IEntityFactory>& efactory)
 void LevelState::attachSpriteFactory(std::unique_ptr<ISpriteFactory>& sfactory)
 {
 	spriteFactory = std::move(sfactory);
+}
+
+void LevelState::initializeComponentFactory(RegisterUserComponentsFunction regCompFunc)
+{
+	regCompFunc(componentFactory.get());
 }

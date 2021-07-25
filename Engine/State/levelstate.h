@@ -23,6 +23,7 @@ class IStateFactory;
 
 class Component;
 class IComponentFactory;
+typedef void (*RegisterUserComponentsFunction) (IComponentFactory*);
 
 class LevelState : public BaseState
 {
@@ -32,8 +33,6 @@ class LevelState : public BaseState
 	std::unique_ptr<IComponentFactory> componentFactory;
 
 protected:
-
-	std::unique_ptr<MessageBus> entityMessageBus;
 
 	std::unique_ptr<MailBox> mailBox;
 
@@ -72,6 +71,8 @@ public:
 	void attachEntityFactory(std::unique_ptr<IEntityFactory>& efactory);
 
 	void attachSpriteFactory(std::unique_ptr<ISpriteFactory>& sfactory);
+
+	void initializeComponentFactory(RegisterUserComponentsFunction regCompFunc);
 
 	TileManager* getTileManager() { return tileManager.get(); }
 

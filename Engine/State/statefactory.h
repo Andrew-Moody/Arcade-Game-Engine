@@ -9,6 +9,9 @@
 class IGameState;
 class EngineCore;
 
+class IComponentFactory;
+typedef void (*RegisterUserComponentsFunction) (IComponentFactory*);
+
 class StateFactory : public IStateFactory
 {
 	// levelName, pair<levelType, levelPath>
@@ -16,6 +19,8 @@ class StateFactory : public IStateFactory
 
 	// LevelType, create method
 	std::map<std::string, CreateLevelMethod> createLevelMap;
+
+	RegisterUserComponentsFunction regCompFunc;
 
 public:
 
@@ -31,4 +36,5 @@ public:
 
 	virtual void registerLevel(std::string levelType, CreateLevelMethod createLevelMethod) override;
 
+	void setRegCompFunc(RegisterUserComponentsFunction regCompFunc);
 };
