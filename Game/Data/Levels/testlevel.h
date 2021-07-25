@@ -12,17 +12,27 @@ class EngineCore;
 
 class IGameState;
 
+class Message;
+
 class TestLevel : public LevelState
 {
+
+	enum class GameState
+	{
+		RoundBegin,
+		Ready,
+		Playing,
+		RoundEnd,
+		Dead,
+		GameOver,
+	};
+
+	GameState currentState;
+	GameState nextState;
+
 	int score;
 
 	int lives;
-
-	bool dead;
-
-	bool gameOver;
-
-	bool themePlayed;
 
 	bool waiting;
 	float timeToWait;
@@ -52,5 +62,13 @@ private:
 
 	void checkMail(Audio* audio);
 
+	// Set the amount of time to wait in milliseconds
+	void wait(float time);
 
+	// Returns true if waiting
+	bool updateWait(float deltaTime);
+
+	void changeState();
+
+	void handleGameEvent(std::shared_ptr<Message> message);
 };

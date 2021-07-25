@@ -1,11 +1,28 @@
 SpriteTemplates
-#name clip.x clip.y clip.w clip.h scale startFrame endFrame frameDelay startBool
-Default 0 0 16 16 1 0 0 0 false
-Floor 0 32 16 16 1 0 0 0 false
-Wall 0 32 16 16 1 1 2 200 true
-Player 0 48 16 16 3 0 3 100 true
-GreenGhost 0 80 16 16 3 0 3 300 true
-BlueGhost 0 96 16 16 3 0 3 300 true
-YellowGhost 0 112 16 16 3 0 3 300 true
-RedGhost 0 128 16 16 3 0 3 300 true
-Fireball 0 64 16 16 2 0 3 300 true
+#CreateSprite SpriteName clip.x clip.y clip.w clip.h scale frameDelay startBool
+#CreateAnimation SpriteName AnimationName startFrame endFrame
+CreateSprite Default 0 0 16 16 1
+CreateSprite Floor 0 32 16 16 1
+#
+CreateSprite Wall 0 32 16 16 1
+CreateAnimation Wall Blink 1 2 200
+#
+CreateSprite Player 0 48 16 16 3
+CreateAnimation Player Idle 0 3 100
+CreateAnimation Player Walk 4 7 100
+CreateAnimation Player Death 8 11 500
+#
+CreateSprite GreenGhost 0 80 16 16 3
+CreateAnimation GreenGhost Walk 0 3 300
+#
+CreateSprite BlueGhost 0 96 16 16 3
+CreateAnimation BlueGhost Walk 0 3 300
+#
+CreateSprite YellowGhost 0 112 16 16 3
+CreateAnimation YellowGhost Walk 0 3 300
+#
+CreateSprite RedGhost 0 128 16 16 3
+CreateAnimation RedGhost Walk 0 3 300
+#
+CreateSprite Fireball 0 64 16 16 2
+CreateAnimation Fireball FireBall 0 3 300

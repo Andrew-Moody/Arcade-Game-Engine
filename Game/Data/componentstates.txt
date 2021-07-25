@@ -1,0 +1,25 @@
+#AddState StateName
+AddState ReadyState
+AddState WalkingState
+AddState DeathState
+#
+AddState GhostReadyState
+AddState GhostDeathState
+AddState GhostInHouseState
+AddState GhostChaseState
+AddState GhostScatterState
+#
+#AddFSM FSMName
+AddFSM PlayerAI
+AddFSM GhostAI
+#
+#AddFSMTemplateState FSMName StateName
+AddFSMTemplateState PlayerAI ReadyState
+AddFSMTemplateState PlayerAI WalkingState
+AddFSMTemplateState PlayerAI DeathState
+#
+AddFSMTemplateState GhostAI GhostReadyState
+AddFSMTemplateState GhostAI GhostDeathState
+AddFSMTemplateState GhostAI GhostInHouseState
+AddFSMTemplateState GhostAI GhostChaseState
+AddFSMTemplateState GhostAI GhostScatterState

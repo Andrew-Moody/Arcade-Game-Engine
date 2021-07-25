@@ -4,6 +4,8 @@
 
 #include "../Engine/Core/enginecore.h"
 
+#include "Components/usercomponentregistry.h"
+#include "Data/Levels/userlevelregistry.h"
 
 int main( int argc, char* args[])
 {
@@ -15,7 +17,7 @@ int main( int argc, char* args[])
 	gameCore->setupCore("Game/Data/window.txt");
 	
 	// Load game
-	gameCore->loadGame("Game/Data/game.txt");
+	gameCore->loadGame("Game/Data/game.txt", User::RegisterUserComponents, User::RegisterUserLevels);
 
 	// Game loop
 	bool done = false;

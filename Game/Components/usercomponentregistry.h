@@ -6,6 +6,8 @@
 // An example is given in the implementation
 namespace User 
 {
+	//typedef void (*RegisterUserComponents)
+
 	void RegisterUserComponents(IComponentFactory* componentFactory); 
 
 	template <typename T> void registerComponent(std::string componentName, IComponentFactory* componentFactory)

@@ -3,9 +3,11 @@
 #include "../../Engine/Entity/baseai.h"
 
 #include <memory>
+#include <vector>
 
 class Entity;
 class TileManager;
+class MessageBus;
 
 struct Float2D
 {
@@ -21,6 +23,10 @@ struct Int2D
 
 class GhostAI : public BaseAI
 {
+	Float2D startPosition;
+
+	Int2D spawnTile;
+
 	Int2D targetTile;
 
 	Int2D currentTile;
@@ -33,30 +39,53 @@ class GhostAI : public BaseAI
 
 	Int2D currentDirection;
 
-	Int2D nextDirection;
-
-	Int2D targetOffset;
-
 	TileManager* tileMap;
+
+	std::vector<Int2D> directions;
 
 	bool initialized;
 
 	bool scatter;
-	bool paused;
 	float timeScattered;
+
+	float timeInHouse;
+	float respawnTime;
+
+	int tileW;
+	int tileH;
 
 
 public:
 
-	GhostAI(Entity* parent);
+	GhostAI(Entity* parent, MessageBus* messageBus);
 
-	static std::unique_ptr<IComponent> create(Entity* parent)
+	static std::unique_ptr<IComponent> create(Entity* parent, MessageBus* messageBus)
 	{
-		return std::make_unique<GhostAI>(parent);
+		return std::make_unique<GhostAI>(parent, messageBus);
 	}
 
-	void update(float deltaTime) override;
+	void initialize();
+
+	void updateTarget(float posX, float posY);
+
+	void updateMovement();
+
+	// Returns true if Scatter Time has expired
+	bool updateScatterTime(float deltaTime);
+
+	void startScatter();
+	void stopScatter();
+
+	bool updateInHouseTime(float deltaTime);
+
+	void respawn();
+
+	void targetSpawn();
+
+	bool atTarget();
 
 private:
 	Int2D getNextDirection();
+
+	void findNextTile();
 };

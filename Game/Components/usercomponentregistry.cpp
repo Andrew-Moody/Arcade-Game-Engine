@@ -5,6 +5,8 @@
 
 // #include "componentname.h"
 #include "testcomp.h"
+//#include "playerai.h"
+//#include "ghostai.h"
 #include "playerai.h"
 #include "ghostai.h"
 

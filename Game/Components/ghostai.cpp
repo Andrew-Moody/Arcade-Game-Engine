@@ -17,114 +17,77 @@
 
 #include <iostream>
 
-GhostAI::GhostAI(Entity* parent) : BaseAI(parent)
+GhostAI::GhostAI(Entity* parent, MessageBus* messageBus) : BaseAI(parent, messageBus)
 {
 
 	tileMap = nullptr;
+	tileW = 64;
+	tileH = 64;
+	spawnTile = { 0,0 };
+	startPosition = { 0.f, 0.f };
 
 	targetTile = { 10, 10 };
-	targetOffset.x = rand() % 7 - 3;
-	targetOffset.y = rand() % 7 - 3;
 	currentTile = { 0, 0 };
 	nextTile = { 0, 0 };
 	position = { 0, 0 };
-	velocity = { -0.2f, 0.0f };
+	velocity = { 0.0f, 0.0f };
 
-	currentDirection = { -1, 0 };
-	nextDirection = { 0, 0 };
+	currentDirection = { 0, 0 };
 
 	initialized = false;
 
 	scatter = false;
-	paused = true;
 	timeScattered = 0.0f;
 
-	MailBox* mailBox = parentEntity->getMailBox();
+	timeInHouse = 0.0f;
+	respawnTime = 3000.f;
+
+	directions.push_back({1,0});
+	directions.push_back({ -1,0 });
+	directions.push_back({ 0,1 });
+	directions.push_back({ 0,-1 });
+
+
 	mailBox->subscribe(MsgType::PlayerMoved);
 	mailBox->subscribe(MsgType::EntityDestroyed);
+	mailBox->subscribe(MsgType::GameEvent);
 }
 
-
-
-void GhostAI::update(float deltaTime)
+void GhostAI::initialize()
 {
-	// Retrieve relevent pointers
 	PhysicsObject* physics = parentEntity->getPhysObjP();
-	Sprite* sprite = parentEntity->getSprite();
-	MailBox* mailBox = parentEntity->getMailBox();
 
-	int tileW;
-	int tileH;
-
-	if (!initialized)
-	{
-		// must be done after construction since parent state is not added till after construction
-		tileMap = parentEntity->getState()->getTileManager();
-
-		tileW = tileMap->getTileWidth();
-		tileH = tileMap->getTileHeight();
-
-		/*int randX = rand() % 3 - 1;
-		int randY = rand() % 2;
-
-		physics->setPosition((13 + randX) * tileW, (13 + 0) * tileH);*/
-
-		position.x = physics->getX();
-		position.y = physics->getY();
-
-		currentTile.x = (position.x) / tileW;
-		currentTile.y = (position.y) / tileH;
-
-		nextTile = { currentTile.x, currentTile.y };
-
-		initialized = true;
-	}
-
-	/*int tileW = tileMap->getTileWidth();
-	int tileH = tileMap->getTileHeight();*/
+	// must be done after construction since parent state is not added till after construction
+	tileMap = parentEntity->getState()->getTileManager();
 
 	tileW = tileMap->getTileWidth();
 	tileH = tileMap->getTileHeight();
 
-	std::shared_ptr<Message> message;
+	position.x = physics->getX();
+	position.y = physics->getY();
 
-	while (!mailBox->isEmpty())
+	startPosition = position;
+
+	currentTile.x = (position.x) / tileW;
+	currentTile.y = (position.y) / tileH;
+
+	spawnTile = currentTile;
+
+
+	respawn();
+
+	initialized = true;
+}
+
+void GhostAI::updateMovement()
+{
+	// Retrieve relevent pointers
+	PhysicsObject* physics = parentEntity->getPhysObjP();
+
+	if (!initialized)
 	{
-		message = mailBox->getMessage();
-
-		if (message->getType() == MsgType::PlayerMoved)
-		{
-
-			paused = false;
-
-			std::shared_ptr<MSGPlayerMoved> playerPos = std::dynamic_pointer_cast<MSGPlayerMoved>(message);
-
-			// Retrieve position of player
-			targetTile.x = targetOffset.x + (playerPos->x + 32) / tileW;
-			targetTile.y = targetOffset.y + (playerPos->y + 32) / tileH;
-
-		}
-
-		if (message->getType() == MsgType::EntityDestroyed)
-		{
-			//std::cout << "EntityDestroyed\n";
-			scatter = true;
-		}
-
+		initialize();
 	}
-
-	if (scatter)
-	{
-		//std::cout << timeScattered << "\n";
-		timeScattered += deltaTime;
-
-		if (timeScattered >= 3000.0f)
-		{
-			timeScattered = 0.0f;
-			scatter = false;
-		}
-	}
-
 
 	// Get current position
 	position.x = physics->getX();
@@ -171,78 +134,101 @@ void GhostAI::update(float deltaTime)
 		// Snap to tile
 		physics->setPosition(currentTile.x * tileW, currentTile.y * tileH);
 
-		//std::cout << "X Current: " << currentTile.x << " Next: " << nextTile.x << " Target: " << targetTile.x << std::endl;
-		//std::cout << "Y Current: " << currentTile.y << " Next: " << nextTile.y << " Target: " << targetTile.y << std::endl;
+		findNextTile();
 
-		// Check if on target
-		if (currentTile.x == targetTile.x && currentTile.y == targetTile.y)
-		{
-			// Stop, Target is reached
-			nextDirection = { 0, 0 };
+		// Update Velocity
 
+		// Scale velocity by some factor
+		float scale = 0.2f;
 
-			// Send Message if applicable
-			//std::shared_ptr<MSGChangeState> message = std::make_shared<MSGChangeState>(5);
-			//mailBox->postMessage(std::static_pointer_cast<Message>(message));
-		}
-		else
-		{
-			// Find the next direction to travel
-			nextDirection = getNextDirection();
-		}
+		velocity.x = currentDirection.x * scale;
+		velocity.y = currentDirection.y * scale;
 
-
-
-		// Update State to reflect direction if changed
-		if (currentDirection.x != nextDirection.x || currentDirection.y != nextDirection.y)
-		{
-			//std::cout << "test\n";
-			currentDirection = { nextDirection.x, nextDirection.y };
-
-			// Scale by some factor
-			float scale = 0.2f;
-
-			velocity.x = currentDirection.x * scale;
-			velocity.y = currentDirection.y * scale;
-
-			//physics->setVelocity(velocity.x, velocity.y);
-			
-
-			
-		}
-
-
-	}
-
-	if (!paused)
-	{
 		physics->setVelocity(velocity.x, velocity.y);
 
-		// Change the sprite orientation based on velocity direction
-		if (currentDirection.x > 0.0f)
-		{
-			sprite->setFlip(SDL_FLIP_HORIZONTAL);
-		}
-		else if (currentDirection.x < 0.0f)
-		{
-			sprite->setFlip(SDL_FLIP_NONE);
-		}
+		// Update Animation
 
+	}
+}
 
-		if (currentDirection.x == 0 && currentDirection.y == 0)
+void GhostAI::findNextTile()
+{
+
+	// Check if on target
+	if (currentTile.x == targetTile.x && currentTile.y == targetTile.y)
+	{
+		// Stop, Target is reached
+		currentDirection = { 0, 0 };
+		return;
+	}
+
+	// Path Vector 
+	Int2D currDistance = { targetTile.x - currentTile.x, targetTile.y - currentTile.y };
+	int minDistanceSqr = 1000;
+	int maxDistanceSqr = 0;
+
+	Int2D newDirection = { 0, 0 };
+
+	if (scatter)
+	{
+		for (int i = 0; i < 4; ++i)
 		{
-			sprite->stopAnimation();
+			Int2D direction = directions[i];
+
+			// Check direction is not the opposite of the current direction
+			if (currentDirection.x != -direction.x || currentDirection.y != -direction.y)
+			{
+				Int2D tile = { currentTile.x + direction.x, currentTile.y + direction.y };
+
+				// Check direction is not blocked by solid tiles
+				if (!tileMap->isSolid2X2(tile.x, tile.y))
+				{
+					Int2D distance = { targetTile.x - tile.x, targetTile.y - tile.y };
+
+					float distanceSqr = distance.x * distance.x + distance.y * distance.y;
+
+					// Check if the new direction is better than previous best
+					if (distanceSqr > maxDistanceSqr)
+					{
+						maxDistanceSqr = distanceSqr;
+						newDirection = direction;
+					}
+				}
+			}
 		}
-		else if (sprite->isPaused())
+	}
+	else
+	{
+		for (int i = 0; i < 4; ++i)
 		{
-			sprite->setStartEndFrames(0, 3);
-			sprite->startAnimation(true);
+			Int2D direction = directions[i];
+
+			// Check direction is not the opposite of the current direction
+			if (currentDirection.x != -direction.x || currentDirection.y != -direction.y)
+			{
+				Int2D tile = { currentTile.x + direction.x, currentTile.y + direction.y };
+
+				// Check direction is not blocked by solid tiles
+				if (!tileMap->isSolid2X2(tile.x, tile.y))
+				{
+					Int2D distance = { targetTile.x - tile.x, targetTile.y - tile.y };
+
+					float distanceSqr = distance.x * distance.x + distance.y * distance.y;
+
+					// Check if the new direction is better than previous best
+					if (distanceSqr < minDistanceSqr)
+					{
+						minDistanceSqr = distanceSqr;
+						newDirection = direction;
+					}
+				}
+			}
 		}
 	}
 
+	nextTile = { currentTile.x + newDirection.x, currentTile.y + newDirection.y };
+	currentDirection = newDirection;
 }
-
-
 
 
 Int2D GhostAI::getNextDirection()
@@ -379,4 +365,100 @@ Int2D GhostAI::getNextDirection()
 	//std::cout << "length " << minLength << "\n";
 
 	return newDirection;
+}
+
+
+
+void GhostAI::updateTarget(float posX, float posY)
+{
+	targetTile.x = (posX + 32) / tileW;
+	targetTile.y = (posY + 32) / tileH;
+
+	std::cout << "New Target: " << targetTile.x << ", " << targetTile.y << std::endl;
+}
+
+
+bool GhostAI::updateScatterTime(float deltaTime)
+{
+	float scatterTime = 3000.f;
+
+	if (timeScattered >= scatterTime)
+	{
+		timeScattered = 0.f;
+		return true;
+	}
+	else
+	{
+		timeScattered += deltaTime;
+		return false;
+	}
+}
+
+
+void GhostAI::startScatter()
+{
+	scatter = true;
+}
+
+
+void GhostAI::stopScatter()
+{
+	scatter = false;
+}
+
+
+bool GhostAI::updateInHouseTime(float deltaTime)
+{
+	timeInHouse += deltaTime;
+
+	if (timeInHouse >= respawnTime)
+	{
+		return true;
+	}
+
+	//std::cout << timeInHouse << "\n";
+
+	return false;
+}
+
+
+void GhostAI::respawn()
+{
+	std::cout << "Respawning\n";
+
+	// Reset Position
+	position = startPosition;
+	parentEntity->getPhysObjP()->setPosition(position.x, position.y);
+	
+	currentTile = spawnTile;
+
+	nextTile = spawnTile;
+
+	velocity = { -0.2f, 0.0f };
+	parentEntity->getPhysObjP()->setVelocity(velocity.x, velocity.y);
+
+	currentDirection = { -1, 0 };
+
+	targetTile = { 10, 10 };
+
+	timeInHouse = 0.0f;
+}
+
+
+void GhostAI::targetSpawn()
+{
+	targetTile = spawnTile;
+}
+
+
+bool GhostAI::atTarget()
+{
+	if (currentTile.x == targetTile.x && currentTile.y == targetTile.y)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }

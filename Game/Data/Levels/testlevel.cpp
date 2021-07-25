@@ -26,18 +26,15 @@ TestLevel::TestLevel(std::string name, IGameState* parentState, EngineCore* engi
 
 	lives = 3;
 
-	dead = false;
-
-	gameOver = false;
-
-	themePlayed = false;
-
 	timeToWait = 0.f;
 	timeWaited = 0.f;
 
 	frames = 0;
 	timeSince = 0.f;
 	fps = 0;
+
+	currentState = GameState::GameOver;
+	nextState = GameState::RoundBegin;
 
 	nextLevel = 7;
 }
@@ -48,8 +45,187 @@ TestLevel::~TestLevel()
 
 }
 
+void TestLevel::changeState()
+{
+	switch (nextState)
+		{
+		case GameState::RoundBegin:
+		{
+			updatePhysics(0.0f);
+
+			mailBox->postMessage(std::make_shared<MSGPlayMusic>("theme"));
+
+			wait(2500.f);
+
+			std::cout << "GameState Entered: GameBegin\n";
+
+			break;
+		}
+		case GameState::Ready:
+		{
+			wait(1600.f);
+
+			std::cout << "GameState Entered: Ready\n";
+
+			break;
+		}
+		case GameState::Playing:
+		{
+			mailBox->postMessage(std::make_shared<MSGStopMusic>());
+			mailBox->postMessage(std::make_shared<MSGPlayMusic>("background", -1));
+
+			mailBox->postMessage(std::make_shared<MSGGameEvent>("RoundStart"));
+
+			std::cout << "GameState Entered: Playing\n";
+
+			break;
+		}
+		case GameState::RoundEnd:
+		{
+			mailBox->postMessage(std::make_shared<MSGStopMusic>());
+
+			mailBox->postMessage(std::make_shared<MSGGameEvent>("RoundEnd"));
+
+			wait(1000.f);
+
+			std::cout << "GameState Entered: RoundEnd\n";
+
+			break;
+		}
+		case GameState::Dead:
+		{
+			mailBox->postMessage(std::make_shared<MSGStopMusic>());
+			mailBox->postMessage(std::make_shared<MSGPlaySound>("death"));
+
+			std::cout << "GameState Entered: Death\n";
+
+			wait(2000.f);
+
+			break;
+		}
+		case GameState::GameOver:
+		{
+			mailBox->postMessage(std::make_shared<MSGStopMusic>());
+
+			mailBox->postMessage(std::make_shared<MSGGameEvent>("GameOver"));
+
+			wait(1000.f);
+
+			std::cout << "GameState Entered: GameOver\n";
+
+			break;
+		}
+		default:
+		{
+			std::cout << "Attempted to transition to unkown state\n";
+		}
+	}
+
+	currentState = nextState;
+}
+
 void TestLevel::update(float deltaTime, Input* input, Audio* audio)
 {
+
+	if (nextState != currentState)
+	{
+		// Perform transition
+		changeState();
+	}
+
+
+	// Perform state action
+
+	switch (currentState)
+	{
+		case GameState::RoundBegin:
+		{
+			if (!waiting)
+			{
+				nextState = GameState::Ready;
+			}
+			break;
+		}
+		case GameState::Ready:
+		{
+			if (!waiting)
+			{
+				nextState = GameState::Playing;
+			}
+			break;
+		}
+		case GameState::Playing:
+		{
+			if (!waiting)
+			{
+				if (score > 5)
+				{
+					nextState = GameState::RoundEnd;
+				}
+			}
+			
+			break;
+		}
+		case GameState::RoundEnd:
+		{
+			if (!waiting)
+			{
+				if (parentState)
+				{
+					parentState->handleMessage(std::make_shared<MSGStateChange>(nextLevel, StateChangeType::ChangeState));
+				}
+			}
+
+			break;
+		}
+		case GameState::Dead:
+		{
+			if (!waiting)
+			{
+				if (lives > 0)
+				{
+					nextState = GameState::Ready;
+				}
+				else
+				{
+					nextState = GameState::GameOver;
+				}
+			}
+
+			break;
+		}
+		case GameState::GameOver:
+		{
+			if (!waiting)
+			{
+				if (parentState)
+				{
+					parentState->handleMessage(std::make_shared<MSGStateChange>("GameOver", StateChangeType::ChangeState));
+				}
+			}
+
+			break;
+		}
+		default:
+		{
+			std::cout << "Attempted to transition to unkown state\n";
+		}
+	}
+
+	waiting = updateWait(deltaTime);
+
+	handleInput(input);
+
+	
+	checkMail(audio);
+
+	// Update game state
+	updatePhysics(deltaTime);
+
+	checkCollision();
+
+	updateAI(deltaTime);
+
 	// Update FPS Counter
 	frames++;
 	timeSince += deltaTime;
@@ -59,76 +235,6 @@ void TestLevel::update(float deltaTime, Input* input, Audio* audio)
 		timeSince -= 1000.0f;
 		fps = frames;
 		frames = 0;
-	}
-
-
-	if (waiting)
-	{
-		if (timeWaited >= timeToWait)
-		{
-			timeWaited = 0.f;
-			timeToWait = 0.f;
-			waiting = false;
-		}
-
-		timeWaited += deltaTime;
-	}
-	else
-	{
-		handleInput(input);
-	}
-
-	// Dispatch messages to subscribers
-	entityMessageBus->dispatchAll();
-	checkMail(audio);
-
-	if (!waiting)
-	{
-
-		if (!themePlayed)
-		{
-			timeToWait = 2000.f;
-			waiting = true;
-			std::shared_ptr<MSGPlayMusic> msg = std::make_shared<MSGPlayMusic>("theme");
-			entityMessageBus->postMessage(msg);
-			themePlayed = true;
-		}
-		else
-		{
-			if (!audio->isPlayingSong())
-			{
-				std::shared_ptr<MSGPlayMusic> msg = std::make_shared<MSGPlayMusic>("background");
-				entityMessageBus->postMessage(msg);
-			}
-		}
-
-		// Update game state
-		updatePhysics(deltaTime);
-
-
-		checkCollision();
-
-		updateAI(deltaTime);
-
-		if (gameOver)
-		{
-			std::shared_ptr<Message> msg = std::make_shared<MSGStateChange>("GameOver", StateChangeType::ChangeState);
-
-			if (parentState)
-			{
-				parentState->handleMessage(msg);
-			}
-		}
-
-		if (entities.size() <= 1)
-		{
-			std::shared_ptr<Message> msg = std::make_shared<MSGStateChange>(nextLevel, StateChangeType::ChangeState);
-
-			if (parentState)
-			{
-				parentState->handleMessage(msg);
-			}
-		}
 	}
 }
 
@@ -150,32 +256,7 @@ void TestLevel::handleCollision(int entityID_A, int entityID_B)
 		auto e_iter = entities.find(enemy);
 		if (e_iter != entities.end())
 		{
-			if (!dead)
-			{
-				lives--;
-
-				std::cout << "Hit!\n";
-
-				auto iter = entities.find(playerId);
-				if (iter != entities.end())
-				{
-					iter->second->getPhysObjP()->setPosition(0, 0);
-
-					std::shared_ptr<MSGPlaySound> msg = std::make_shared<MSGPlaySound>("death");
-					entityMessageBus->postMessage(msg);
-
-					timeToWait = 2000.f;
-					waiting = true;
-				}
-
-				if (lives < 1)
-				{
-					std::cout << "Game over\n";
-					gameOver = true;
-				}
-				dead = true;
-			}
-
+			mailBox->postMessage(std::make_unique<MSGGameEvent>("HitEnemy"));
 		}
 	}
 	else
@@ -189,12 +270,12 @@ void TestLevel::handleCollision(int entityID_A, int entityID_B)
 			auto e_iter = entities.find(entityID_A);
 			if (e_iter != entities.end())
 			{
-				entityMessageBus->postMessage(std::make_unique<MSGEntityDestroyed>(e_iter->first));
-				entities.erase(e_iter);
-				std::cout << "erased entity\n";
+				mailBox->postMessage(std::make_unique<MSGEntityDestroyed>(e_iter->first));
+				//entities.erase(e_iter);
+				//std::cout << "erased entity\n";
 
 				std::shared_ptr<MSGPlaySound> msg = std::make_shared<MSGPlaySound>("coin");
-				entityMessageBus->postMessage(msg);
+				mailBox->postMessage(msg);
 
 				score++;
 			}
@@ -205,7 +286,6 @@ void TestLevel::handleCollision(int entityID_A, int entityID_B)
 
 void TestLevel::checkMail(Audio* audio)
 {
-	dead = false;
 
 	if (mailBox)
 	{
@@ -215,59 +295,83 @@ void TestLevel::checkMail(Audio* audio)
 
 			switch (message->getType())
 			{
-			case MsgType::StateChange:
-			{
-				if (parentState)
+				case MsgType::StateChange:
 				{
-					parentState->handleMessage(message);
-				}
-				break;
-			}
-
-			case MsgType::LaunchProjectile:
-			{
-				if (projectiles.size() < 4)
-				{
-					std::shared_ptr<MSGLaunchProjectile> msg = std::static_pointer_cast<MSGLaunchProjectile>(message);
-					createProjectile("Projectile", msg->x, msg->y, msg->velX, msg->velY);
-
-					std::shared_ptr<MSGPlaySound> soundMsg = std::make_shared<MSGPlaySound>("fireball");
-					entityMessageBus->postMessage(soundMsg);
+					if (parentState)
+					{
+						parentState->handleMessage(message);
+					}
+					break;
 				}
 
-				break;
-			}
+				case MsgType::LaunchProjectile:
+				{
+					if (projectiles.size() < 4)
+					{
+						std::shared_ptr<MSGLaunchProjectile> msg = std::static_pointer_cast<MSGLaunchProjectile>(message);
+						createProjectile("Projectile", msg->x, msg->y, msg->velX, msg->velY);
 
-			case MsgType::Collision:
-			{
-				std::shared_ptr<MSGCollision> msg = std::static_pointer_cast<MSGCollision>(message);
-				handleCollision(msg->ID_A, msg->ID_B);
-				break;
-			}
+						std::shared_ptr<MSGPlaySound> soundMsg = std::make_shared<MSGPlaySound>("fireball");
+						mailBox->postMessage(soundMsg);
+					}
 
-			case MsgType::PlayMusic:
-			{
-				std::shared_ptr<MSGPlayMusic> msg = std::static_pointer_cast<MSGPlayMusic>(message);
-				audio->playMusic(msg->songName, msg->repeat);
-				break;
-			}
+					break;
+				}
 
-			case MsgType::PlaySound:
-			{
-				std::shared_ptr<MSGPlaySound> msg = std::static_pointer_cast<MSGPlaySound>(message);
-				audio->playSound(msg->songName, msg->repeat, msg->channel);
-				break;
-			}
+				case MsgType::Collision:
+				{
+					std::shared_ptr<MSGCollision> msg = std::static_pointer_cast<MSGCollision>(message);
+					handleCollision(msg->ID_A, msg->ID_B);
+					break;
+				}
 
-			case MsgType::Control:
-			{
-				break;
-			}
+				case MsgType::PlayMusic:
+				{
+					std::shared_ptr<MSGPlayMusic> msg = std::static_pointer_cast<MSGPlayMusic>(message);
+					audio->playMusic(msg->songName, msg->repeat);
+					break;
+				}
 
-			default:
-			{
-				break;
-			}
+				case MsgType::PlaySound:
+				{
+					std::shared_ptr<MSGPlaySound> msg = std::static_pointer_cast<MSGPlaySound>(message);
+					audio->playSound(msg->songName, msg->repeat, msg->channel);
+					break;
+				}
+
+				case MsgType::StopMusic:
+				{
+					audio->stopMusic();
+					break;
+				}
+
+				case MsgType::StopSound:
+				{
+					std::shared_ptr<MSGStopSound> msg = std::static_pointer_cast<MSGStopSound>(message);
+					audio->stopSound(msg->channel);
+					break;
+				}
+
+				case MsgType::PlayerDeath:
+				{
+					nextState = GameState::Dead;
+					break;
+				}
+
+				case MsgType::Control:
+				{
+					break;
+				}
+
+				case MsgType::GameEvent:
+				{
+					handleGameEvent(message);
+				}
+
+				default:
+				{
+					break;
+				}
 			}
 		}
 	}
@@ -280,16 +384,91 @@ void TestLevel::render(Graphics* graphics)
 
 	SDL_Color color = { 100,0,0 };
 
-	graphics->drawText("Lives " + std::to_string(lives), color, 0,0,1);
+	switch (currentState)
+	{
+		case GameState::RoundBegin:
+		{
+			graphics->drawText("PLAYER ONE", color, 230, 245, 1);
+			graphics->drawText("READY!", color, 260, 390, 1);
+			break;
+		}
+		case GameState::Ready:
+		{
+			graphics->drawText("READY!", color, 260, 390, 1);
+			break;
+		}
+		case GameState::GameOver:
+		{
+			graphics->drawText("GAME OVER", color, 230, 245, 1);
+			break;
+		}
+		case GameState::RoundEnd:
+		{
+			graphics->drawText("Winner!!!", color, 230, 245, 1);
+			break;
+		}
+		default :
+		{
+			break;
+		}
+	}
 
+	graphics->drawText("1UP", color, 50, 0, 1);
+	graphics->drawText("HIGH SCORE", color, 230, 0, 1);
+	graphics->drawText(std::to_string(score), color, 230, 30, 1);
 
-	graphics->drawText("Score " + std::to_string(score), color, 475, 0, 1);
+	for (int i = 0; i < lives; ++i)
+	{
+		graphics->drawText("P", color, (30 + i * 30), 700, 1);
+	}
 
 	graphics->drawText("FPS " + std::to_string(fps), color, 475, 700, 1);
+}
+
+
+void TestLevel::wait(float time)
+{
+	timeToWait = time;
+	waiting = true;
+}
+
+
+bool TestLevel::updateWait(float deltaTime)
+{
+	if (timeWaited < timeToWait)
+	{
+		timeWaited += deltaTime;
+		return true;
+	}
+	else
+	{
+		timeWaited = 0.f;
+		timeToWait = 0.f;
+		return false;
+	}
 }
 
 
 std::unique_ptr<IGameState> TestLevel::create(std::string name, IGameState* parentState, EngineCore* engineCore)
 {
 	return std::make_unique<TestLevel>(name, parentState, engineCore);
+}
+
+
+void TestLevel::handleGameEvent(std::shared_ptr<Message> message)
+{
+	std::shared_ptr<MSGGameEvent> msg = std::static_pointer_cast<MSGGameEvent>(message);
+
+	if (msg->eventName == "LostLife")
+	{
+		--lives;
+	}
+	else if (msg->eventName == "")
+	{
+
+	}
+	else if (msg->eventName == "")
+	{
+
+	}
 }

@@ -1,6 +1,7 @@
 LoadSpriteFactory Game/Data/sprites.txt
 LoadTileMap Game/Data/Levels/tilemap1.txt
 LoadEntityFactory Game/Data/entities.txt
+LoadComponentFactory Game/Data/componentstates.txt
 Spawn Player 0 0
 Spawn RedGhost 300 264
 Spawn GreenGhost 264 312
@@ -11,6 +12,10 @@ SubscribeMail 3
 SubscribeMail 4
 SubscribeMail 6
 SubscribeMail 7
+SubscribeMail 8
+SubscribeMail 9
+SubscribeMail 14
+SubscribeMail 15
 AddEntControl 119 0 1
 AddEntControl 97 0 2
 AddEntControl 115 0 3

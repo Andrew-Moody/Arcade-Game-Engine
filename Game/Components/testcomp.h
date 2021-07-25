@@ -5,6 +5,7 @@
 #include <iostream>
 
 class Entity;
+class MessageBus;
 
 class TestComp : public IComponent
 {
@@ -14,7 +15,7 @@ public:
 
 	~TestComp() {}
 
-	static std::unique_ptr<IComponent> create(Entity* parent)
+	static std::unique_ptr<IComponent> create(Entity* parent, MessageBus* messageBus)
 	{
 		return std::make_unique<TestComp>();
 	}
