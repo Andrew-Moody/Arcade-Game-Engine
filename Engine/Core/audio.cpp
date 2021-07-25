@@ -122,6 +122,24 @@ void Audio::playSound(std::string name, int repeat, int channel)
 }
 
 
+void Audio::stopMusic()
+{
+	if (Mix_PlayingMusic())
+	{
+		Mix_HaltMusic();
+	}
+}
+
+
+void Audio::stopSound(int channel)
+{
+	if (Mix_Playing(channel))
+	{
+		Mix_HaltChannel(channel);
+	}
+}
+
+
 void Audio::loadAudio(std::string path)
 {
 

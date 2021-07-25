@@ -44,7 +44,9 @@ EngineCore::EngineCore()
 
 }
 
+
 EngineCore::~EngineCore() {}
+
 
 void EngineCore::setupCore(std::string filePath)
 {
@@ -57,6 +59,9 @@ void EngineCore::setupCore(std::string filePath)
 		if (!file)
 		{
 			// Error
+			std::cout << "EngineCore was unable to load initialization file: " << filePath << std::endl;
+
+			return;
 		}
 
 
@@ -73,13 +78,11 @@ void EngineCore::setupCore(std::string filePath)
 			{
 				screenWidth = file.getNextInt();
 			}
-
-			if (command == "ScreenHeight")
+			else if (command == "ScreenHeight")
 			{
 				screenHeight = file.getNextInt();
 			}
-
-			if (command == "WindowName")
+			else if (command == "WindowName")
 			{
 				windowName = file.getNextString();
 
@@ -87,11 +90,6 @@ void EngineCore::setupCore(std::string filePath)
 				graphics->initialize(screenWidth, screenHeight, windowName);
 			}
 		}
-
-
-		// Initialize input
-		input->initialize(false);
-
 		
 		// Initialize core timer
 		coreTimer->update();
@@ -106,7 +104,7 @@ void EngineCore::setupCore(std::string filePath)
 
 
 
-void EngineCore::loadGame(std::string filePath)
+void EngineCore::loadGame(std::string filePath, RegisterUserComponentsFunction regCompFunc, RegisterUserLevelsFunction regLevelFunc)
 {
 
 
@@ -115,6 +113,7 @@ void EngineCore::loadGame(std::string filePath)
 	if (!file)
 	{
 		// Error
+		std::cout << "EngineCore was unable to load game initialization file: " << filePath << std::endl;
 	}
 
 	std::string assetName;
@@ -132,8 +131,7 @@ void EngineCore::loadGame(std::string filePath)
 
 			graphics->addSpriteSheet(assetName, assetPath);
 		}
-
-		if (command == "AddFont")
+		else if (command == "AddFont")
 		{
 			assetName = file.getNextString();
 			assetPath = file.getNextString();
@@ -142,20 +140,24 @@ void EngineCore::loadGame(std::string filePath)
 
 			graphics->addFont(assetName, assetPath, size);
 		}
-
-		if (command == "LoadAudio")
+		else if (command == "LoadAudio")
 		{
 			operand = file.getNextString();
 			audio->loadAudio(operand);
 		}
-
-		if (command == "LoadStates")
+		else if (command == "LoadStates")
 		{
 			operand = file.getNextString();
+
+			// Use the User defined register function to register user defined levels
+			regLevelFunc(stateFactory.get());
+
+			// Pass the component registration function to the statefactory for use in constructing levels
+			static_cast<StateFactory*>(stateFactory.get())->setRegCompFunc(regCompFunc);
+
 			stateFactory->loadStatePaths(operand);
 		}
-
-		if (command == "CreateState")
+		else if (command == "CreateState")
 		{
 			operand = file.getNextString();
 			gameManager = stateFactory->createState(operand, nullptr, this);

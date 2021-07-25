@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL.h>
-#include <string>
 
 #include <memory>
 
@@ -37,16 +36,9 @@ public:
 		ALL
 	};
 
-	// Use this to initialize input devices
-	// with SDL all we are really doing here is choosing if we want to capture the mouse
-	void initialize(bool captureMouse);
-
+	
+	// Handles all SDL_Events recieved last frame
 	void update(float deltaTime);
-
-
-	// Handles an SDL_Event and updates keys down, pressed, mouse state etc.
-	// Returns true if event was an exit event
-	bool handleSDLEvent(SDL_Event& event);
 
 	// key specifies the key to test.
 	// e.key.keysym.sym returns a enumeration that maps to the ascii code of the key
@@ -75,5 +67,14 @@ public:
 	bool getMouseLButton() const { return mouseLButton; }
 	bool getMouseRButton() const { return mouseRButton; }
 	bool getMouseMButton() const { return mouseMButton; }
+
+private:
+
+	// Handles an SDL_Event and updates keys down, pressed, mouse state etc.
+	void handleSDLEvent(SDL_Event& event);
+
+	// Used when processing messages to allow temporary mouse capture
+	// Should not be left on for long periods of time
+	void setMouseCapture(bool captureMouse);
 
 };

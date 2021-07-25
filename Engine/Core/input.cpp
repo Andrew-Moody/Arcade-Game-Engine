@@ -1,7 +1,6 @@
 #include "input.h"
 
 #include <SDL.h>
-#include <string>
 
 #include <iostream>
 
@@ -25,45 +24,24 @@ Input::~Input()
 	}
 }
 
-void Input::initialize(bool captureMouse)
-{
-	mouseCaptured = captureMouse;
-	if (mouseCaptured)
-	{
-		SDL_CaptureMouse(SDL_TRUE);
-	}
-	
-	 
-}
-
 
 void Input::update(float deltaTime)
 {
-	bool exit = false;
-
 	//handle all messages in queue
 	while (SDL_PollEvent(&sdl_event))
 	{
-		if (handleSDLEvent(sdl_event))
-		{
-			exit = true;
-		}
-	}
-
-	if (exit)
-	{
-		//send message to exit
-		mailBox->postMessage(std::make_shared<MSGExitApplication>());
+		handleSDLEvent(sdl_event);
 	}
 }
 
 
 //Handle a SDL_Event
-bool Input::handleSDLEvent(SDL_Event& event)
+void Input::handleSDLEvent(SDL_Event& event)
 {
 	if (event.type == SDL_QUIT)
 	{
-		return true;
+		//send message to exit
+		mailBox->postMessage(std::make_shared<MSGExitApplication>());
 	}
 
 	if (event.type == SDL_KEYDOWN)
@@ -72,6 +50,12 @@ bool Input::handleSDLEvent(SDL_Event& event)
 
 		if (keyCode < 256)
 		{
+			// Post a message if key was not already pressed
+			if (!keysDown[keyCode])
+			{
+				mailBox->postMessage(std::make_shared<MSGKeyPress>((int)keyCode));
+			}
+
 			// update keysDown
 			keysDown[keyCode] = true;
 
@@ -92,8 +76,9 @@ bool Input::handleSDLEvent(SDL_Event& event)
 		{
 			// update keysDown
 			keysDown[keyCode] = false;
+
+			mailBox->postMessage(std::make_shared<MSGKeyRelease>((int)keyCode));
 		}
-		
 	}
 
 
@@ -112,29 +97,24 @@ bool Input::handleSDLEvent(SDL_Event& event)
 
 			switch (event.button.button)
 			{
-			case SDL_BUTTON_LEFT:
-			{
-				mouseLButton = buttonDown;
-				break;
-			}
-			case SDL_BUTTON_RIGHT:
-			{
-				mouseRButton = buttonDown;
-				break;
-			}
-			case SDL_BUTTON_MIDDLE:
-			{
-				mouseMButton = buttonDown;
-				break;
-			}
-			default:
-			{
-				break;
-			}
+				case SDL_BUTTON_LEFT:
+				{
+					mouseLButton = buttonDown;
+					break;
+				}
+				case SDL_BUTTON_RIGHT:
+				{
+					mouseRButton = buttonDown;
+					break;
+				}
+				case SDL_BUTTON_MIDDLE:
+				{
+					mouseMButton = buttonDown;
+					break;
+				}
 			}
 		}
 	}
-	return false;
 }
 
 //Returns true if the specified key is down
@@ -216,3 +196,16 @@ void Input::clearCategory(ClearType type)
 	}
 }
 
+
+void Input::setMouseCapture(bool captureMouse)
+{
+	mouseCaptured = captureMouse;
+	if (mouseCaptured)
+	{
+		SDL_CaptureMouse(SDL_TRUE);
+	}
+	else
+	{
+		SDL_CaptureMouse(SDL_FALSE);
+	}
+}

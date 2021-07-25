@@ -31,6 +31,10 @@ public:
 
 	void playSound(std::string name, int repeat = -1, int channel = -1);
 
+	void stopMusic();
+
+	void stopSound(int channel);
+
 	void loadAudio(std::string path);
 
 	bool isPlayingSong();

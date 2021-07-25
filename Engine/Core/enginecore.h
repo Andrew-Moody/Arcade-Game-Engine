@@ -11,8 +11,10 @@ class MailBox;
 class MessageBus;
 class IGameState;
 class IStateFactory;
+class IComponentFactory;
 
-
+typedef void (*RegisterUserComponentsFunction) (IComponentFactory*);
+typedef void (*RegisterUserLevelsFunction) (IStateFactory*);
 
 class EngineCore
 {
@@ -52,7 +54,7 @@ public:
 	bool run();
 
 	// Load Game(s) from a file
-	void loadGame(std::string filePath);
+	void loadGame(std::string filePath, RegisterUserComponentsFunction, RegisterUserLevelsFunction);
 
 	MessageBus* getMessageBus() { return coreMessageBus.get(); }
 	Audio* getAudio() { return audio.get(); }
