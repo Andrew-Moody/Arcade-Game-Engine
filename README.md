@@ -18,6 +18,12 @@ There is an excellent tutorial on setting up these libraries for several differe
 
 ##### Version History:
 
+7/25/21
+* Added Support for AI state machines.
+* Sprites can now hold animation maps to allow animations to be requested by name.
+* Player and Ghosts have been updated to use a state machine to control their behavior.
+
+
 6/30/21
 * Added the Audio class to wrap SDL_mixer and handle WAV loading and playback.
 * StateFactory can now create user defined level types using a registration mechanism similar to that of the component factory.
