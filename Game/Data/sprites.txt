@@ -1,28 +1,49 @@
 SpriteTemplates
-#CreateSprite SpriteName clip.x clip.y clip.w clip.h scale frameDelay startBool
-#CreateAnimation SpriteName AnimationName startFrame endFrame
-CreateSprite Default 0 0 16 16 1
-CreateSprite Floor 0 32 16 16 1
+#CreateSprite SpriteName clip.x clip.y clip.w clip.h scale offsetX offsetY
+#CreateAnimation SpriteName AnimationName startFrame endFrame frameDelay
+CreateSprite Default 0 0 16 16 1 0 0
+CreateSprite SolidFloor 0 32 16 16 1 0 0
+CreateSprite Floor 0 32 16 16 1 0 0
+CreateSprite DebugTile 0 0 16 16 1 0 0
 #
-CreateSprite Wall 0 32 16 16 1
-CreateAnimation Wall Blink 1 2 200
+CreateSprite Wall 16 32 16 16 1 0 0
+CreateAnimation Wall Blink 0 1 200
 #
-CreateSprite Player 0 48 16 16 3
+CreateSprite Pellet 48 32 16 16 1 0 0
+CreateSprite WallDown 0 144 16 16 1 0 0
+CreateSprite WallUp 16 144 16 16 1 0 0
+CreateSprite WallLeft 32 144 16 16 1 0 0
+CreateSprite WallRight 48 144 16 16 1 0 0
+CreateSprite BigCorner1 64 144 16 16 1 0 0
+CreateSprite BigCorner2 80 144 16 16 1 0 0
+CreateSprite BigCorner3 96 144 16 16 1 0 0
+CreateSprite BigCorner4 112 144 16 16 1 0 0
+CreateSprite SmallCorner1 128 144 16 16 1 0 0
+CreateSprite SmallCorner2 144 144 16 16 1 0 0
+CreateSprite SmallCorner3 160 144 16 16 1 0 0
+CreateSprite SmallCorner4 176 144 16 16 1 0 0
+#
+CreateSprite Player 0 48 16 16 3 -12 -12
 CreateAnimation Player Idle 0 3 100
 CreateAnimation Player Walk 4 7 100
 CreateAnimation Player Death 8 11 500
 #
-CreateSprite GreenGhost 0 80 16 16 3
+CreateSprite GreenGhost 0 80 16 16 3 -12 -12
 CreateAnimation GreenGhost Walk 0 3 300
 #
-CreateSprite BlueGhost 0 96 16 16 3
+CreateSprite BlueGhost 0 96 16 16 3 -12 -12
 CreateAnimation BlueGhost Walk 0 3 300
 #
-CreateSprite YellowGhost 0 112 16 16 3
+CreateSprite YellowGhost 0 112 16 16 3 -12 -12
 CreateAnimation YellowGhost Walk 0 3 300
 #
-CreateSprite RedGhost 0 128 16 16 3
+CreateSprite RedGhost 0 128 16 16 3 -12 -12
 CreateAnimation RedGhost Walk 0 3 300
 #
-CreateSprite Fireball 0 64 16 16 2
+CreateSprite Fireball 0 64 16 16 2 0 0
 CreateAnimation Fireball FireBall 0 3 300
+#
+CreateSprite Cursor 6 26 6 6 3 0 0
+CreateSprite GridH 0 20 12 2 3 0 0
+CreateSprite GridV 0 20 2 12 3 0 0
+CreateSprite Collider 48 0 16 16 3 0 0

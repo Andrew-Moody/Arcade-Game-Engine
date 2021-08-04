@@ -31,6 +31,8 @@ class TestLevel : public LevelState
 	GameState nextState;
 
 	int score;
+	int pelletsEaten;
+	int pelletsOnLevel;
 
 	int lives;
 
@@ -71,4 +73,6 @@ private:
 	void changeState();
 
 	void handleGameEvent(std::shared_ptr<Message> message);
+
+	void checkTile();
 };

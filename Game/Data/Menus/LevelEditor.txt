@@ -1,0 +1,20 @@
+LoadSpriteFactory Game/Data/sprites.txt
+SetOutputPath Game/testlevel.txt
+SetGrid 28 31 24 24
+AddTile 6 Floor 0
+AddTile 10 Pellet 0
+AddTile 11 WallDown 1
+AddTile 12 WallUp 1
+AddTile 13 WallLeft 1
+AddTile 14 WallRight 1
+AddTile 15 BigCorner1 1
+AddTile 16 BigCorner2 1
+AddTile 17 BigCorner3 1
+AddTile 18 BigCorner4 1
+AddTile 19 SmallCorner1 1
+AddTile 20 SmallCorner2 1
+AddTile 21 SmallCorner3 1
+AddTile 22 SmallCorner4 1
+SetCursorSprite Cursor
+SetGridSprite GridH GridV
+SetColliderSprite Collider

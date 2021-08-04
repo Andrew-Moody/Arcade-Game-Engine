@@ -1,2 +1,2 @@
-ChildStates MainMenu TestGame
+ChildStates MainMenu TestGame LevelEditor
 InitialState MainMenu

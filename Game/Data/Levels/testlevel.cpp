@@ -23,6 +23,9 @@ TestLevel::TestLevel(std::string name, IGameState* parentState, EngineCore* engi
 	: LevelState(name, parentState, engineCore)
 {
 	score = 0;
+	pelletsEaten = 0;
+	//pelletsOnLevel = 256;
+	pelletsOnLevel = 6;
 
 	lives = 3;
 
@@ -158,7 +161,9 @@ void TestLevel::update(float deltaTime, Input* input, Audio* audio)
 		{
 			if (!waiting)
 			{
-				if (score > 5)
+				checkTile();
+
+				if (pelletsEaten == pelletsOnLevel)
 				{
 					nextState = GameState::RoundEnd;
 				}
@@ -471,4 +476,44 @@ void TestLevel::handleGameEvent(std::shared_ptr<Message> message)
 	{
 
 	}
+}
+
+
+void TestLevel::checkTile()
+{
+	Entity* player = nullptr;
+
+	auto iter = entities.find(playerId);
+	if (iter != entities.end())
+	{
+		player = iter->second.get();
+	}
+
+	if (!player)
+	{
+		return;
+	}
+
+	int posX = player->getPhysObjP()->getX();
+	int posY = player->getPhysObjP()->getY();
+
+	int tileW = tileManager->getTileWidth();
+	int tileH = tileManager->getTileHeight();
+
+	int tileX = posX / tileW;
+	int tileY = posY / tileH;
+
+	int tileType = tileManager->getTile(tileX, tileY);
+
+	if (tileType == 10)
+	{
+		tileManager->placeTile(tileX, tileY, (SpriteType)6);
+
+		++pelletsEaten;
+		score += 10;
+
+		// Play sound
+		mailBox->postMessage(std::make_shared<MSGPlaySound>("pellet"));
+	}
+
 }

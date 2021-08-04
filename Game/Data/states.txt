@@ -5,5 +5,6 @@ TestGame State Game/Data/Menus/TestGame.txt
 GameMenu Menu Game/Data/Menus/GameMenu.txt
 PauseGame Menu Game/Data/Menus/PauseGame.txt
 GameOver Menu Game/Data/Menus/GameOver.txt
+LevelEditor Editor Game/Data/Menus/LevelEditor.txt
 Level1 TestLevel Game/Data/Levels/Level1.txt
 Level2 TestLevel Game/Data/Levels/Level2.txt

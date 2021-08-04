@@ -6,6 +6,7 @@ AddState DeathState
 AddState GhostReadyState
 AddState GhostDeathState
 AddState GhostInHouseState
+AddState GhostLeavingHouseState
 AddState GhostChaseState
 AddState GhostScatterState
 #
@@ -21,5 +22,6 @@ AddFSMTemplateState PlayerAI DeathState
 AddFSMTemplateState GhostAI GhostReadyState
 AddFSMTemplateState GhostAI GhostDeathState
 AddFSMTemplateState GhostAI GhostInHouseState
+AddFSMTemplateState GhostAI GhostLeavingHouseState
 AddFSMTemplateState GhostAI GhostChaseState
 AddFSMTemplateState GhostAI GhostScatterState
