@@ -35,23 +35,50 @@ bool Physics::checkCollision(Entity* entity, TileManager* tileMap)
 
 void Physics::moveOnTileMap(TestPhysics* testPhysics, TileManager* tileMap, float deltaTime)
 {
-	int lastX = testPhysics->posX;
-	int lastY = testPhysics->posY;
+	if (!testPhysics->getCollisionEnabled())
+	{
+		//std::cout << "No Collision\n";
+
+		testPhysics->posX += testPhysics->velX * deltaTime;
+		testPhysics->posY += testPhysics->velY * deltaTime;
+		return;
+	}
+
 
 	testPhysics->posX += testPhysics->velX * deltaTime;
 
 	if (tileMap->collidesWith(testPhysics->posX, testPhysics->posY, testPhysics->width, testPhysics->height))
 	{
-		//std::cout << "Collides in X\n";
-		testPhysics->posX = lastX;
+		int tileW = tileMap->getTileWidth();
+
+		// Set the position to the start of the current tile
+		testPhysics->posX = ((int)testPhysics->posX / tileW) * tileW;
+
+		//std::cout << "Testing colision X: " << testPhysics->posX << "\n";
+
+		// shift the position to the next tile if the velocity was negative
+		if (testPhysics->velX < 0)
+		{
+			testPhysics->posX += tileW;
+		}
 	}
 
 	testPhysics->posY += testPhysics->velY * deltaTime;
 
 	if (tileMap->collidesWith(testPhysics->posX, testPhysics->posY, testPhysics->width, testPhysics->height))
 	{
-		//std::cout << "Collides in Y\n";
-		testPhysics->posY = lastY;
+		int tileH = tileMap->getTileHeight();
+
+		// Set the position to the start of the current tile
+		testPhysics->posY = ((int)testPhysics->posY / tileH) * tileH;
+
+		//std::cout << "Testing colision Y: " << testPhysics->posY << "\n";
+
+		// shift the position to the next tile if the velocity was negative
+		if (testPhysics->velY < 0)
+		{
+			testPhysics->posY += tileH;
+		}
 	}
 }
 

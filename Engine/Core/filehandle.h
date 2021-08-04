@@ -123,9 +123,16 @@ public:
 
 		std::string nextString = getNextString();
 
-		int x = std::stoi(nextString);
+		if (!nextString.empty())
+		{
+			int x = std::stoi(nextString);
 
-		return x;
+			return x;
+		}
+		else
+		{
+			return -100;
+		}
 	}
 
 	int getNextOptionalInt()
