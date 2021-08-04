@@ -64,6 +64,8 @@ void LevelState::initialize(std::string path)
 
 			tileManager = std::make_unique<TileManager>();
 			tileManager->loadGridFromFile(operand, spriteFactory.get());
+
+			//tileManager->saveToFile("Game/test.txt");
 		}
 		else if (command == "LoadSpriteFactory")
 		{

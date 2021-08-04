@@ -5,6 +5,8 @@
 #include "levelstate.h"
 #include "../Menu/menubox.h"
 
+#include "../LevelEditor/leveleditor.h"
+
 #include "../Message/mailaddress.h"
 #include "../Message/messagebus.h"
 #include "../Entity/entityfactory.h"
@@ -86,6 +88,10 @@ std::unique_ptr<IGameState> StateFactory::createState(std::string name, IGameSta
 	else if (type == "Level")
 	{
 		state = std::make_unique<LevelState>(name, parentState, engineCore);
+	}
+	else if (type == "Editor")
+	{
+		state = std::make_unique<LevelEditor>(name, parentState, engineCore);
 	}
 	else
 	{
