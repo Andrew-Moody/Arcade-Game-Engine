@@ -32,6 +32,12 @@ class TileManager
 	std::map<int, std::unique_ptr<Sprite>> tileSet;
 	std::map<int, bool> tileSolid;
 
+
+	// Debug
+	std::vector<int> debugX;
+	std::vector<int> debugY;
+	Sprite* debugSprite;
+
 public:
 
 	TileManager();
@@ -70,9 +76,21 @@ public:
 
 	bool isSolid2X2(int x, int y);
 
-
 	int getXcollision(int x, int w);
 
 	int getYcollision(int y, int h);
 
+	void saveToFile(std::string filePath);
+
+	Sprite* getTileSprite(int tileID);
+
+	void renderSolidMap(Graphics* graphics, Sprite* colliderSprite);
+
+	void reset();
+
+	void setDebugLocation(int x, int y, int ID);
+
+private:
+
+	void renderDebug(Graphics* graphics);
 };

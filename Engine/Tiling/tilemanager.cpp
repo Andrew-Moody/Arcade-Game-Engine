@@ -25,6 +25,10 @@ TileManager::TileManager()
 	posX = 0;
 	posY = 0;
 
+
+	debugX.resize(5);
+	debugY.resize(5);
+	debugSprite = nullptr;
 }
 
 
@@ -58,6 +62,8 @@ void TileManager::createGrid(int gridwidth, int gridheight, int tilewidth, int t
 
 
 	int length = gridWidth * gridHeight;
+
+	grid.clear();
 
 	grid.reserve(length);
 
@@ -95,6 +101,9 @@ void TileManager::renderTileGrid(Graphics* graphics)
 			}
 		}
 	}
+
+
+	renderDebug(graphics);
 }
 
 
@@ -150,12 +159,18 @@ bool TileManager::loadGridFromFile(std::string filepath, ISpriteFactory* spriteF
 			while (!gridFile.eof())
 			{
 				
-				tile = gridFile.getNextCharacter() - 48;
+				//tile = gridFile.getNextCharacter() - 48;
+
+				tile = gridFile.getNextInt();
 
 				if (tile != -100)
 				{
 					grid.push_back(tile);
 					//std::cout << "Tile: " << tile << "\n";
+				}
+				else
+				{
+					std::cout << "Warning: Newline at end of tilemap file";
 				}
 			}
 
@@ -174,6 +189,16 @@ bool TileManager::loadGridFromFile(std::string filepath, ISpriteFactory* spriteF
 			std::unique_ptr<Sprite> tileSprite = spriteFactory->createSprite(spriteName);
 
 			addTileSprite(tileID, tileSprite, bool(solid));
+		}
+		else if (command == "SetDebugTile")
+		{
+			int tileID = gridFile.getNextInt();
+
+			auto iter = tileSet.find(tileID);
+			if (iter != tileSet.end())
+			{
+				debugSprite = iter->second.get();
+			}
 		}
 
 	}
@@ -297,4 +322,120 @@ int TileManager::getXcollision(int x, int w)
 int TileManager::getYcollision(int y, int h)
 {
 	return 0;
+}
+
+
+void TileManager::saveToFile(std::string filePath)
+{
+	std::ofstream levelFile(filePath);
+
+	//my_file.open("my_file.txt", std::ios::out);
+
+	if (!levelFile)
+	{
+		std::cout << "Failed to create file with path: " << filePath << std::endl;;
+		return;
+	}
+	
+	//std::cout << "File created successfully!\n";
+
+	// Grid Parameters
+	levelFile << "SetGrid " << gridWidth << " " << gridHeight << " " << tileWidth << " " << tileHeight << "\n";
+
+	// Save the tile set
+	for (auto tileSetIter = tileSet.begin(); tileSetIter != tileSet.end(); ++tileSetIter)
+	{
+		auto tileSolidIter = tileSolid.find(tileSetIter->first);
+		if (tileSolidIter != tileSolid.end())
+		{
+			levelFile << "AddTile " << tileSetIter->first << " " << tileSetIter->second->getSpriteName() << " " << (int)(tileSolidIter->second) << "\n";
+		}
+	}
+
+	//levelFile << "SetDebugTile 1\n";
+	levelFile << "SetTiles\n";
+
+	// Save the contents of grid to the file
+	for (int row = 0; row < gridHeight; ++row)
+	{
+		int offset = row * gridWidth;
+		for (int col = 0; col < gridWidth - 1; ++col)
+		{
+			levelFile << grid[col + offset] << " ";
+		}
+
+		levelFile << grid[gridWidth - 1 + offset];
+
+		levelFile << "\n";
+	}
+
+	levelFile.close();
+}
+
+
+Sprite* TileManager::getTileSprite(int tileID)
+{
+	auto iter = tileSet.find(tileID);
+	if (iter != tileSet.end())
+	{
+		return iter->second.get();
+	}
+	else
+	{
+		std::cout << "Failed to retrieve tilesprite\n";
+		return nullptr;
+	}
+}
+
+
+void TileManager::renderSolidMap(Graphics* graphics, Sprite* colliderSprite)
+{
+	for (int gridY = 0; gridY < gridHeight; ++gridY)
+	{
+		int destY = gridY * tileHeight + posY;
+		for (int gridX = 0; gridX < gridWidth; ++gridX)
+		{
+			int type = getTile(gridX, gridY);
+			auto iter = tileSolid.find(getTile(gridX, gridY));
+			if (iter != tileSolid.end())
+			{
+				if (iter->second)
+				{
+					colliderSprite->setDest(gridX * tileWidth + posX, destY, tileWidth, tileHeight);
+
+					graphics->draw(colliderSprite);
+				}
+			}
+		}
+	}
+}
+
+
+void TileManager::reset()
+{
+	grid.clear();
+	tileSet.clear();
+	tileSolid.clear();
+}
+
+void TileManager::setDebugLocation(int x, int y, int ID)
+{
+	if (ID > 0 && ID < debugX.size())
+	{
+		debugX[ID] = x * tileWidth;
+		debugY[ID] = y * tileHeight;
+	}
+}
+
+void TileManager::renderDebug(Graphics* graphics)
+{
+	if (debugSprite)
+	{
+		for (size_t i = 0; i < debugX.size(); ++i)
+		{
+			debugSprite->setDest(debugX[i], debugY[i], tileWidth, tileHeight);
+
+			graphics->draw(debugSprite);
+		}
+	}
 }
