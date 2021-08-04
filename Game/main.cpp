@@ -2,6 +2,9 @@
 #include <iostream>
 #include <string>
 
+#include <fstream>
+#include <vector>
+
 #include "../Engine/Core/enginecore.h"
 
 #include "Components/usercomponentregistry.h"
