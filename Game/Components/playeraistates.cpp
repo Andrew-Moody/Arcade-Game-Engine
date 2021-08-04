@@ -46,7 +46,7 @@ void ReadyState::onEnter(BaseAI* ai)
 {
 	PlayerAI* playerAI = static_cast<PlayerAI*>(ai);
 
-	playerAI->getParent()->getPhysObjP()->setPosition(0, 0);
+	playerAI->respawn();
 	
 	playerAI->resetDirection();
 
@@ -98,6 +98,29 @@ void WalkingState::update(BaseAI* ai, float deltaTime)
 			}
 		}
 	}
+
+	// Update direction
+	if (playerAI->onTile())
+	{
+		if (playerAI->isQueuedDirectionValid())
+		{
+			playerAI->snapToTile();
+
+			playerAI->setQueuedToCurrent();
+		}	
+
+		// Notify Enemies of new location
+		playerAI->postLocationMsg();
+	}
+	else if (playerAI->getDirection() == (int)Direction::None)
+	{
+		if (playerAI->isQueuedDirectionValid())
+		{
+			playerAI->setQueuedToCurrent();
+		}
+	}
+
+
 }
 
 void WalkingState::onEnter(BaseAI* ai)
@@ -127,19 +150,19 @@ void WalkingState::handleKeyPress(BaseAI* ai, int key, bool pressed)
 
 	if (key == 119)
 	{
-		playerAI->changeDirection((int)Direction::North, pressed);
+		playerAI->changeQueuedDirection((int)Direction::North, pressed);
 	}
 	else if (key == 115)
 	{
-		playerAI->changeDirection((int)Direction::South, pressed);
+		playerAI->changeQueuedDirection((int)Direction::South, pressed);
 	}
 	else if (key == 100)
 	{
-		playerAI->changeDirection((int)Direction::East, pressed);
+		playerAI->changeQueuedDirection((int)Direction::East, pressed);
 	}
 	else if (key == 97)
 	{
-		playerAI->changeDirection((int)Direction::West, pressed);
+		playerAI->changeQueuedDirection((int)Direction::West, pressed);
 	}
 	else if (key == 32 && pressed)
 	{

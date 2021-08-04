@@ -68,6 +68,28 @@ public:
 };
 
 
+class GhostLeavingHouseState : public ComponentState
+{
+public:
+
+	GhostLeavingHouseState();
+
+	virtual ~GhostLeavingHouseState();
+
+	static std::unique_ptr<ComponentState> create()
+	{
+		return std::make_unique<GhostLeavingHouseState>();
+	}
+
+	virtual void update(BaseAI* ai, float deltaTime) override;
+
+	virtual void onEnter(BaseAI* ai) override;
+
+	virtual void onExit(BaseAI* ai) override;
+
+};
+
+
 class GhostChaseState : public ComponentState
 {
 public:

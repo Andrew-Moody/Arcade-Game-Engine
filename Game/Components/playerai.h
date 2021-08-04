@@ -21,10 +21,6 @@ enum class Direction
 	South,
 	East,
 	West,
-	NorthEast,
-	NorthWest,
-	SouthEast,
-	SouthWest,
 };
 
 /*  Direction Vector signs (consistent with screen coordinates)
@@ -43,11 +39,16 @@ class PlayerAI : public BaseAI
 {
 	Direction currentDirection;
 
-	DirectionVector directionV;
+	Direction queuedDirection;
 
-	std::vector<std::vector<Direction>> directionMatrix;
+	int spawnPosX;
+	int spawnPosY;
 
-	std::vector<bool> keysPressed;
+	//DirectionVector directionV;
+
+	//std::vector<std::vector<Direction>> directionMatrix;
+
+	//std::vector<bool> keysPressed;
 
 public:
 
@@ -62,9 +63,11 @@ public:
 
 	void postMessage(std::shared_ptr<Message> message);
 
-	void changeDirection(int key, bool pressed);
+	void changeQueuedDirection(int key, bool pressed);
 
 	void resetDirection();
+
+	void respawn();
 
 	void updateVelocity();
 
@@ -76,8 +79,18 @@ public:
 
 	void launchProjectile();
 
+	bool onTile();
+
+	void setQueuedToCurrent();
+
+	void snapToTile();
+
+	bool isQueuedDirectionValid();
+
 private:
 
 	// Prints to console for debugging
 	void printDirection();
+
+	
 };

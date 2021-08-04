@@ -30,7 +30,7 @@ void GhostReadyState::update(BaseAI* ai, float deltaTime)
 
 			if (msg->eventName == "RoundStart")
 			{
-				ghostAI->changeState("GhostChaseState");
+				ghostAI->changeState("GhostLeavingHouseState");
 			}
 		}
 	}
@@ -39,6 +39,8 @@ void GhostReadyState::update(BaseAI* ai, float deltaTime)
 void GhostReadyState::onEnter(BaseAI* ai)
 {
 	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+
+	ghostAI->initialize();
 
 	ghostAI->getParent()->getSprite()->playAnimation("Ready", true);
 
@@ -72,19 +74,19 @@ void GhostDeathState::update(BaseAI* ai, float deltaTime)
 		}
 	}
 
-	if (ghostAI->atTarget())
+	// Update Movement
+	if (ghostAI->updateDeath(deltaTime))
 	{
 		ghostAI->changeState("GhostInHouseState");
 		return;
 	}
-
-	// Update Movement
-	ghostAI->updateMovement();
 }
 
 void GhostDeathState::onEnter(BaseAI* ai)
 {
 	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+
+	ghostAI->getParent()->setCollisionEnabled(false);
 
 	ghostAI->targetSpawn();
 
@@ -97,7 +99,7 @@ void GhostDeathState::onExit(BaseAI* ai)
 {
 	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
 
-	ghostAI->respawn();
+	ghostAI->getParent()->setCollisionEnabled(true);
 }
 
 
@@ -128,7 +130,7 @@ void GhostInHouseState::update(BaseAI* ai, float deltaTime)
 
 	if (ghostAI->updateInHouseTime(deltaTime))
 	{
-		ghostAI->changeState("GhostChaseState");
+		ghostAI->changeState("GhostLeavingHouseState");
 	}
 }
 
@@ -144,6 +146,56 @@ void GhostInHouseState::onEnter(BaseAI* ai)
 void GhostInHouseState::onExit(BaseAI* ai)
 {
 	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+}
+
+
+GhostLeavingHouseState::GhostLeavingHouseState() {}
+
+GhostLeavingHouseState::~GhostLeavingHouseState() {}
+
+void GhostLeavingHouseState::update(BaseAI* ai, float deltaTime)
+{
+	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+
+	MailBox* mailBox = ghostAI->getMailBox();
+
+	while (!mailBox->isEmpty())
+	{
+		std::shared_ptr<Message> message = mailBox->getMessage();
+
+		/*if (message->getType() == MsgType::GameEvent)
+		{
+			std::shared_ptr<MSGGameEvent> msg = std::static_pointer_cast<MSGGameEvent>(message);
+
+			if (msg->eventName == "RoundStart")
+			{
+				ghostAI->changeState("GhostChaseState");
+			}
+		}*/
+	}
+
+	if (ghostAI->updateLeavingHouse(deltaTime))
+	{
+		ghostAI->changeState("GhostChaseState");
+	}
+}
+
+void GhostLeavingHouseState::onEnter(BaseAI* ai)
+{
+	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+
+	ghostAI->getParent()->setCollisionEnabled(false);
+
+	ghostAI->getParent()->getSprite()->playAnimation("Ready", true);
+
+	std::cout << "Ghost Entered LeavingHouseState\n";
+}
+
+void GhostLeavingHouseState::onExit(BaseAI* ai)
+{
+	GhostAI* ghostAI = static_cast<GhostAI*>(ai);
+
+	ghostAI->getParent()->setCollisionEnabled(true);
 }
 
 
@@ -169,7 +221,7 @@ void GhostChaseState::update(BaseAI* ai, float deltaTime)
 			// Update Target Position
 			std::shared_ptr<MSGPlayerMoved> playerPos = std::dynamic_pointer_cast<MSGPlayerMoved>(message);
 
-			std::cout << "Recieved PlayerMoved\n";
+			//std::cout << "Recieved PlayerMoved\n";
 
 			ghostAI->updateTarget(playerPos->x, playerPos->y);
 		}

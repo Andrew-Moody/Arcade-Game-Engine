@@ -25,8 +25,6 @@ class GhostAI : public BaseAI
 {
 	Float2D startPosition;
 
-	Int2D spawnTile;
-
 	Int2D targetTile;
 
 	Int2D currentTile;
@@ -55,6 +53,18 @@ class GhostAI : public BaseAI
 	int tileH;
 
 
+	enum class DeathSubState
+	{
+		Null,
+		Returning,
+		HomeRow,
+		Entering,
+		ToSpawn,
+		Finished,
+	};
+
+	DeathSubState deathSubState;
+
 public:
 
 	GhostAI(Entity* parent, MessageBus* messageBus);
@@ -78,11 +88,17 @@ public:
 
 	bool updateInHouseTime(float deltaTime);
 
+	bool updateDeath(float deltaTime);
+
 	void respawn();
 
 	void targetSpawn();
 
 	bool atTarget();
+
+	bool updateInHouse(float deltaTime);
+
+	bool updateLeavingHouse(float deltaTime);
 
 private:
 	Int2D getNextDirection();

@@ -23,7 +23,6 @@ GhostAI::GhostAI(Entity* parent, MessageBus* messageBus) : BaseAI(parent, messag
 	tileMap = nullptr;
 	tileW = 64;
 	tileH = 64;
-	spawnTile = { 0,0 };
 	startPosition = { 0.f, 0.f };
 
 	targetTile = { 10, 10 };
@@ -51,43 +50,43 @@ GhostAI::GhostAI(Entity* parent, MessageBus* messageBus) : BaseAI(parent, messag
 	mailBox->subscribe(MsgType::PlayerMoved);
 	mailBox->subscribe(MsgType::EntityDestroyed);
 	mailBox->subscribe(MsgType::GameEvent);
+
+
+	deathSubState = DeathSubState::Returning;
 }
 
 void GhostAI::initialize()
 {
-	PhysicsObject* physics = parentEntity->getPhysObjP();
+	if (!initialized)
+	{
+		PhysicsObject* physics = parentEntity->getPhysObjP();
 
-	// must be done after construction since parent state is not added till after construction
-	tileMap = parentEntity->getState()->getTileManager();
+		// must be done after construction since parent state is not added till after construction
+		tileMap = parentEntity->getState()->getTileManager();
 
-	tileW = tileMap->getTileWidth();
-	tileH = tileMap->getTileHeight();
+		tileW = tileMap->getTileWidth();
+		tileH = tileMap->getTileHeight();
 
-	position.x = physics->getX();
-	position.y = physics->getY();
+		position.x = physics->getX();
+		position.y = physics->getY();
 
-	startPosition = position;
+		startPosition = position;
 
-	currentTile.x = (position.x) / tileW;
-	currentTile.y = (position.y) / tileH;
-
-	spawnTile = currentTile;
+		currentTile.x = (position.x) / tileW;
+		currentTile.y = (position.y) / tileH;
 
 
-	respawn();
+		respawn();
 
-	initialized = true;
+		initialized = true;
+	}
+	
 }
 
 void GhostAI::updateMovement()
 {
 	// Retrieve relevent pointers
 	PhysicsObject* physics = parentEntity->getPhysObjP();
-
-	if (!initialized)
-	{
-		initialize();
-	}
 
 	// Get current position
 	position.x = physics->getX();
@@ -139,7 +138,7 @@ void GhostAI::updateMovement()
 		// Update Velocity
 
 		// Scale velocity by some factor
-		float scale = 0.2f;
+		float scale = 0.1f;
 
 		velocity.x = currentDirection.x * scale;
 		velocity.y = currentDirection.y * scale;
@@ -180,8 +179,8 @@ void GhostAI::findNextTile()
 			{
 				Int2D tile = { currentTile.x + direction.x, currentTile.y + direction.y };
 
-				// Check direction is not blocked by solid tiles
-				if (!tileMap->isSolid2X2(tile.x, tile.y))
+				// Check direction is not blocked by a solid tile
+				if (!tileMap->isSolid(tile.x, tile.y))
 				{
 					Int2D distance = { targetTile.x - tile.x, targetTile.y - tile.y };
 
@@ -209,7 +208,7 @@ void GhostAI::findNextTile()
 				Int2D tile = { currentTile.x + direction.x, currentTile.y + direction.y };
 
 				// Check direction is not blocked by solid tiles
-				if (!tileMap->isSolid2X2(tile.x, tile.y))
+				if (!tileMap->isSolid(tile.x, tile.y))
 				{
 					Int2D distance = { targetTile.x - tile.x, targetTile.y - tile.y };
 
@@ -228,6 +227,8 @@ void GhostAI::findNextTile()
 
 	nextTile = { currentTile.x + newDirection.x, currentTile.y + newDirection.y };
 	currentDirection = newDirection;
+
+	tileMap->setDebugLocation(nextTile.x, nextTile.y, 1);
 }
 
 
@@ -371,10 +372,12 @@ Int2D GhostAI::getNextDirection()
 
 void GhostAI::updateTarget(float posX, float posY)
 {
-	targetTile.x = (posX + 32) / tileW;
-	targetTile.y = (posY + 32) / tileH;
+	targetTile.x = (posX + 5) / tileW;
+	targetTile.y = (posY + 5) / tileH;
 
-	std::cout << "New Target: " << targetTile.x << ", " << targetTile.y << std::endl;
+	//std::cout << "New Target: " << targetTile.x << ", " << targetTile.y << std::endl;
+
+	tileMap->setDebugLocation(targetTile.x, targetTile.y, 2);
 }
 
 
@@ -430,14 +433,14 @@ void GhostAI::respawn()
 	position = startPosition;
 	parentEntity->getPhysObjP()->setPosition(position.x, position.y);
 	
-	currentTile = spawnTile;
+	//currentTile = spawnTile;
 
-	nextTile = spawnTile;
+	//nextTile = spawnTile;
 
-	velocity = { -0.2f, 0.0f };
+	velocity = { 0.0f, 0.0f };
 	parentEntity->getPhysObjP()->setVelocity(velocity.x, velocity.y);
 
-	currentDirection = { -1, 0 };
+	currentDirection = { 0, 0 };
 
 	targetTile = { 10, 10 };
 
@@ -447,7 +450,7 @@ void GhostAI::respawn()
 
 void GhostAI::targetSpawn()
 {
-	targetTile = spawnTile;
+	targetTile = { 13,11 };
 }
 
 
@@ -461,4 +464,198 @@ bool GhostAI::atTarget()
 	{
 		return false;
 	}
+}
+
+
+
+
+bool GhostAI::updateInHouse(float deltaTime)
+{
+	return true;
+}
+
+bool GhostAI::updateLeavingHouse(float deltaTime)
+{
+	int exitPosX = 324;
+	int exitPosY = 264;
+
+	int posX = (int)parentEntity->getPhysObjP()->getX();
+	int posY = (int)parentEntity->getPhysObjP()->getY();
+
+	int threshold = 3;
+	float speed = 0.03;
+
+	if (posX != exitPosX)
+	{
+		// Move toward ExitX
+		if (posX < (exitPosX - threshold))
+		{
+			parentEntity->getPhysObjP()->setVelocity(speed, 0.f);
+		}
+		else if (posX > (exitPosX + threshold))
+		{
+			parentEntity->getPhysObjP()->setVelocity(-speed, 0.f);
+		}
+		else
+		{
+			// Exit position reached within threshold 
+			// Snap to exit position
+			parentEntity->getPhysObjP()->setPosition(exitPosX, posY);
+			parentEntity->getPhysObjP()->setVelocity(0.f, 0.f);
+		}
+	}
+	else if (posY != exitPosY)
+	{
+		// Move toward ExitY
+		if (posY < (exitPosY + threshold))
+		{
+			// Exit position reached within threshold 
+			// Snap to exit position
+			parentEntity->getPhysObjP()->setPosition(exitPosX, exitPosY);
+			parentEntity->getPhysObjP()->setVelocity(0.f, 0.f);
+		}
+		else
+		{
+			// Move Toward Exit
+			parentEntity->getPhysObjP()->setVelocity(0.f, -speed);
+		}
+	}
+	else
+	{
+		// Set direction to the right and change to Chase State
+
+		currentTile = { 13,11 };
+		nextTile = { 14,11 };
+		currentDirection = { 1,0 };
+
+		std::cout << "Stopped At: " << posX << ", " << posY << "\n";
+
+		float scale = 0.05f;
+
+		velocity.x = currentDirection.x * scale;
+		velocity.y = currentDirection.y * scale;
+
+		parentEntity->getPhysObjP()->setVelocity(velocity.x, velocity.y);
+		return true;
+	}
+
+	return false;
+}
+
+
+
+bool GhostAI::updateDeath(float deltaTime)
+{
+	int posY = parentEntity->getPhysObjP()->getY();
+	int posX = parentEntity->getPhysObjP()->getX();
+
+	switch (deathSubState)
+	{
+		case DeathSubState::Null:
+		{
+			break;
+		}
+		case DeathSubState::Returning:
+		{
+			updateMovement();
+
+			if (posY == 264)
+			{
+				if (posX > 288 && posX < 360)
+				{
+					deathSubState = DeathSubState::Entering;
+					//std::cout << "DeathSub: Entering\n";
+				}
+			}
+			break;
+		}
+		case DeathSubState::Entering:
+		{
+			int exitPosX = 324;
+			int exitPosY = 336;
+			int threshold = 3;
+			float speed = 0.03f;
+
+			if (posX != exitPosX)
+			{
+				// Move toward ExitX
+				if (posX < (exitPosX - threshold))
+				{
+					parentEntity->getPhysObjP()->setVelocity(speed, 0.f);
+				}
+				else if (posX > (exitPosX + threshold))
+				{
+					parentEntity->getPhysObjP()->setVelocity(-speed, 0.f);
+				}
+				else
+				{
+					// Exit position reached within threshold 
+					// Snap to exit position
+					parentEntity->getPhysObjP()->setPosition(exitPosX, posY);
+					parentEntity->getPhysObjP()->setVelocity(0.f, 0.f);
+				}
+			}
+			else if (posY != exitPosY)
+			{
+				// Move toward ExitY
+				if (posY > (exitPosY - threshold))
+				{
+					// Exit position reached within threshold 
+					// Snap to exit position
+					parentEntity->getPhysObjP()->setPosition(exitPosX, exitPosY);
+					parentEntity->getPhysObjP()->setVelocity(0.f, 0.f);
+				}
+				else
+				{
+					// Move Toward Exit
+					parentEntity->getPhysObjP()->setVelocity(0.f, speed);
+				}
+			}
+			else
+			{
+				deathSubState = DeathSubState::ToSpawn;
+				//std::cout << "DeathSub: ToSpawn\n";
+			}
+
+			break;
+		}
+		case DeathSubState::ToSpawn:
+		{
+			int threshold = 3;
+			float speed = 0.03f;
+
+			//if (startPosition.y < )
+
+			if (posX < (startPosition.x - threshold))
+			{
+				parentEntity->getPhysObjP()->setVelocity(speed, 0.f);
+			}
+			else if (posX > (startPosition.x + threshold))
+			{
+				parentEntity->getPhysObjP()->setVelocity(-speed, 0.f);
+			}
+			else
+			{
+				// spawn position reached within threshold 
+				// Snap to exit position
+				parentEntity->getPhysObjP()->setPosition(startPosition.x, posY);
+				parentEntity->getPhysObjP()->setVelocity(0.f, 0.f);
+
+				deathSubState = DeathSubState::Finished;
+				//std::cout << "DeathSub: Finished\n";
+			}
+
+			break;
+		}
+		case DeathSubState::Finished:
+		{
+			timeInHouse = 0.f;
+			deathSubState = DeathSubState::Returning;
+			//std::cout << "DeathSub: Returning\n";
+			return true;
+			break;
+		}
+	}
+
+	return false;
 }

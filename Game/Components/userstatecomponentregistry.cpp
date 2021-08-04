@@ -13,6 +13,7 @@ void User::registerUserComponentStates(ComponentStateFactory* componentStateFact
 	registerComponentState<GhostReadyState>("GhostReadyState", componentStateFactory);
 	registerComponentState<GhostDeathState>("GhostDeathState", componentStateFactory);
 	registerComponentState<GhostInHouseState>("GhostInHouseState", componentStateFactory);
+	registerComponentState<GhostLeavingHouseState>("GhostLeavingHouseState", componentStateFactory);
 	registerComponentState<GhostChaseState>("GhostChaseState", componentStateFactory);
 	registerComponentState<GhostScatterState>("GhostScatterState", componentStateFactory);
 

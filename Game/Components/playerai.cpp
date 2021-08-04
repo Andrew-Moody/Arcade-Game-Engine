@@ -10,6 +10,9 @@
 #include "../../Engine/Message/msgtype.h"
 #include "../../Engine/Message/messages.h"
 
+#include "../../Engine/tiling/tilemanager.h"
+#include "../../Engine/State/levelstate.h"
+
 #include <string>
 #include <iostream>
 
@@ -23,19 +26,23 @@ PlayerAI::PlayerAI(Entity* parentEntity, MessageBus* messageBus)
 
 	currentDirection = Direction::None;
 
+	queuedDirection = Direction::None;
 
-	// Starts at 1, 1 to allow fast indexing into direction matrix. -1, 0, 1 maps to 0, 1, 2
-	directionV = { 1, 1 };
+	spawnPosX = 324;
+	spawnPosY = 552;
 
-	directionMatrix.push_back({ Direction::NorthWest, Direction::West, Direction::SouthWest });
-	directionMatrix.push_back({ Direction::North, Direction::None, Direction::South });
-	directionMatrix.push_back({ Direction::NorthEast, Direction::East, Direction::SouthEast });
+	//// Starts at 1, 1 to allow fast indexing into direction matrix. -1, 0, 1 maps to 0, 1, 2
+	//directionV = { 1, 1 };
 
+	//directionMatrix.push_back({ Direction::NorthWest, Direction::West, Direction::SouthWest });
+	//directionMatrix.push_back({ Direction::North, Direction::None, Direction::South });
+	//directionMatrix.push_back({ Direction::NorthEast, Direction::East, Direction::SouthEast });
+
+	/*keysPressed.push_back(false);
 	keysPressed.push_back(false);
 	keysPressed.push_back(false);
 	keysPressed.push_back(false);
-	keysPressed.push_back(false);
-	keysPressed.push_back(false);
+	keysPressed.push_back(false);*/
 
 }
 
@@ -52,70 +59,32 @@ void PlayerAI::postMessage(std::shared_ptr<Message> message)
 }
 
 
-void PlayerAI::changeDirection(int key, bool pressed)
+void PlayerAI::changeQueuedDirection(int key, bool pressed)
 {
-	// Either add or subtract depending on if key was pressed or released
-
-	int sign;
-
-	// Check if the inout is valid (ie A key cant be released if it wasnt pressed etc.)
-	if (pressed != keysPressed[key])
+	// Update the queued direction
+	if (pressed)
 	{
-		// Set the change direction according to whether the key was pressed or released
-		if (pressed)
-		{
-			sign = 1;
-		}
-		else
-		{
-			sign = -1;
-		}
-
-		// Update the key's state
-		keysPressed[key] = pressed;
+		queuedDirection = (Direction)key;
 	}
 	else
 	{
-		// The input is not valid
-		sign = 0;
-	}
-
-	
-
-	// Update the direction vector according to key pressed (or released)
-	switch ((Direction)key)
-	{
-		case Direction::North :
-		{	
-			directionV.y -= sign;
-			break;
-		}
-
-		case Direction::South:
+		// if the key being released was the last key pressed
+		if ((Direction)key == queuedDirection)
 		{
-			directionV.y += sign;
-			break;
-		}
-
-		case Direction::East:
-		{
-			directionV.x += sign;
-			break;
-		}
-
-		case Direction::West:
-		{
-			directionV.x -= sign;
-			break;
+			queuedDirection = Direction::None;
 		}
 	}
+}
 
-	// Update current direction from direction vector by lookup 
-	currentDirection = directionMatrix[directionV.x][directionV.y];
+void PlayerAI::setQueuedToCurrent()
+{
+
+
+	currentDirection = queuedDirection;
 
 	updateVelocity();
 
-	printDirection();
+	//printDirection();
 
 	postLocationMsg();
 }
@@ -123,18 +92,23 @@ void PlayerAI::changeDirection(int key, bool pressed)
 
 void PlayerAI::resetDirection()
 {
-	directionV = { 1, 1 };
+	//directionV = { 1, 1 };
 	currentDirection = Direction::None;
 
-	for (auto iter = keysPressed.begin(); iter != keysPressed.end(); ++iter)
+	/*for (auto iter = keysPressed.begin(); iter != keysPressed.end(); ++iter)
 	{
 		*(iter) = false;
-	}
+	}*/
 
 	//parentEntity->getPhysObjP()->setVelocity(0, 0);
 	updateVelocity();
 }
 
+
+void PlayerAI::respawn()
+{
+	parentEntity->getPhysObjP()->setPosition(spawnPosX, spawnPosY);
+}
 
 void PlayerAI::updateVelocity()
 {
@@ -181,38 +155,10 @@ void PlayerAI::updateVelocity()
 			animation = "Walk";
 			break;
 		}
-		case Direction::NorthEast:
-		{
-			velX = 0.3536f;
-			velY = -0.3536f;
-			animation = "Walk";
-			break;
-		}
-		case Direction::NorthWest:
-		{
-			velX = -0.3536f;
-			velY = -0.3536f;
-			animation = "Walk";
-			break;
-		}
-		case Direction::SouthEast:
-		{
-			velX = 0.3536f;
-			velY = 0.3536f;
-			animation = "Walk";
-			break;
-		}
-		case Direction::SouthWest:
-		{
-			velX = -0.3536f;
-			velY = 0.3536f;
-			animation = "Walk";
-			break;
-		}
 	}
 
 	parentEntity->getSprite()->playAnimation(animation, true);
-	parentEntity->getPhysObjP()->setVelocity(velX, velY);
+	parentEntity->getPhysObjP()->setVelocity(velX * 0.4f, velY * 0.4f);
 
 }
 
@@ -234,7 +180,7 @@ void PlayerAI::postLocationMsg()
 
 	mailBox->postMessage(msg);
 
-	std::cout << "Posted PlayerMoved\n";
+	//std::cout << "Posted PlayerMoved\n";
 }
 
 
@@ -249,10 +195,13 @@ void PlayerAI::launchProjectile()
 	float x = parentEntity->getPhysObjP()->getX();
 	float y = parentEntity->getPhysObjP()->getY();
 
-	float projectileVelX = 1;
-	float projectileVelY = 1;
+	float projectileVelX = parentEntity->getPhysObjP()->getVelX() * 2.f;
+	float projectileVelY = parentEntity->getPhysObjP()->getVelY() * 2.f;
 
-	postMessage(std::make_shared<MSGLaunchProjectile>(1, 16 + x, y, projectileVelX, projectileVelY));
+	float launchPosX = x + (projectileVelX * 10) - 4;
+	float launchPosY = y - (projectileVelY * 10) - 4;
+
+	postMessage(std::make_shared<MSGLaunchProjectile>(1, launchPosX, launchPosY, projectileVelX, projectileVelY));
 }
 
 
@@ -285,25 +234,149 @@ void PlayerAI::printDirection()
 			std::cout << "West\n";
 			break;
 		}
-		case Direction::NorthEast:
+	}
+}
+
+
+
+bool PlayerAI::onTile()
+{
+	TileManager* tileMap = parentEntity->getState()->getTileManager();
+
+	int tileW = tileMap->getTileWidth();
+	int tileH = tileMap->getTileHeight();
+
+	int posX = (int)parentEntity->getPhysObjP()->getX();
+	int posY = (int)parentEntity->getPhysObjP()->getY();
+
+	int modX = posX % tileW;
+	int modY = posY % tileH;
+
+	int threshold = 2;
+
+	bool onTile = true;
+
+	if (modX > threshold && modX < (tileW - threshold))
+	{
+		onTile = false;
+	}
+
+	if (modY > threshold && modY < (tileH - threshold))
+	{
+		onTile = false;
+	}
+
+	return onTile;
+}
+
+
+void PlayerAI::snapToTile()
+{
+	TileManager* tileMap = parentEntity->getState()->getTileManager();
+
+	int tileW = tileMap->getTileWidth();
+	int tileH = tileMap->getTileHeight();
+
+	int posX = (int)parentEntity->getPhysObjP()->getX();
+	int posY = (int)parentEntity->getPhysObjP()->getY();
+
+	int modX = posX % tileW;
+	int modY = posY % tileH;
+
+	if (modX != 0 || modY != 0)
+	{
+		std::cout << "Snapped To Tile\n";
+	}
+
+	// Move to 0, 0 in the current tile
+
+	posX -= modX;
+	posY -= modY;
+
+	// Shift to the next tile if it was closer
+
+	if (modX > (tileW / 2))
+	{
+		posX += tileW;
+	}
+	
+	if (modY > (tileH / 2))
+	{
+		posY += tileH;
+	}
+
+	parentEntity->getPhysObjP()->setPosition(posX, posY);
+}
+
+
+bool PlayerAI::isQueuedDirectionValid()
+{
+	// Insure that Queued direction causes a change in direction
+	if (queuedDirection == currentDirection || queuedDirection == Direction::None)
+	{
+		return false;
+	}
+
+
+
+	TileManager* tileMap = parentEntity->getState()->getTileManager();
+
+	int tileW = tileMap->getTileWidth();
+	int tileH = tileMap->getTileHeight();
+
+	int posX = parentEntity->getPhysObjP()->getX();
+	int posY = parentEntity->getPhysObjP()->getY();
+
+	// Find the current tile
+	int tileX = posX / tileW;
+	int tileY = posY / tileH;
+
+	// Find the position within the current tile
+	int inTileX = posX - tileX * tileW;
+	int inTileY = posY - tileY * tileH;
+
+	// Increment tile if the position is closer to the next tile 
+	// The final result should be the same tile found by snapToTile()
+	if (inTileX > tileW / 2)
+	{
+		++tileX;
+	}
+
+	if (inTileY > tileH / 2)
+	{
+		++tileY;
+	}
+	
+
+	// Find the next tile in the queued direction
+
+	switch (queuedDirection)
+	{
+		case Direction::North:
 		{
-			std::cout << "NorthEast\n";
+			--tileY;
 			break;
 		}
-		case Direction::NorthWest:
+		case Direction::South:
 		{
-			std::cout << "NorthWest\n";
+			++tileY;
 			break;
 		}
-		case Direction::SouthEast:
+		case Direction::East:
 		{
-			std::cout << "SouthEast\n";
+			++tileX;
 			break;
 		}
-		case Direction::SouthWest:
+		case Direction::West:
 		{
-			std::cout << "SouthWest\n";
+			--tileX;
 			break;
 		}
 	}
+
+	// Check if the next tile in the queued direction is valid
+	bool isValid = !tileMap->isSolid(tileX, tileY);
+
+	return isValid;
 }
+
