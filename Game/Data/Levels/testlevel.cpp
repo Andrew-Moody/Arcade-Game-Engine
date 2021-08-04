@@ -24,8 +24,7 @@ TestLevel::TestLevel(std::string name, IGameState* parentState, EngineCore* engi
 {
 	score = 0;
 	pelletsEaten = 0;
-	//pelletsOnLevel = 256;
-	pelletsOnLevel = 6;
+	pelletsOnLevel = 256;
 
 	lives = 3;
 
