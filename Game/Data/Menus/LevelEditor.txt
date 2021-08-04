@@ -1,5 +1,5 @@
 LoadSpriteFactory Game/Data/sprites.txt
-SetOutputPath Game/testlevel.txt
+SetOutputPath Game/Data/Levels/testlevel.txt
 SetGrid 28 31 24 24
 AddTile 6 Floor 0
 AddTile 10 Pellet 0
