@@ -18,6 +18,13 @@ There is an excellent tutorial on setting up these libraries for several differe
 
 ##### Version History:
 
+8/3/21
+* Added a level editor to help create tile maps.
+* Move cursor with WASD, place a tile with SPACE, and cycle the selected tile with Q and E. 
+* Toggleable overlays display gridlines and solid tile collision boundaries.
+* Added pellets that can be picked up to increase score. Collecting all pellets completes the round.
+
+
 7/25/21
 * Added Support for AI state machines.
 * Sprites can now hold animation maps to allow animations to be requested by name.
